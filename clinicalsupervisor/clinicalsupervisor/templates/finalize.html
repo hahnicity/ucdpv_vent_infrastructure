@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="finalize" method="post">
+        <p><b>Choose the files that you want to move to a patient directory and then delete. You can select multiple files in a range using SHIFT-click</b></p>
+        <div data-toggle="checkboxes" data-range="true">
+            <table class="file_table">
+                <tbody>
+                    {% for file in files %}
+                        <tr><td><input type="checkbox" class="checkbox" name="file" value="{{ file }}"> {{ file }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        Patient Pseudo-id: <input type="text" name="pseudo_id">
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+{% endblock %}

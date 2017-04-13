@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!--Don't have one yet...<link rel="icon" href="../../favicon.ico">-->
+
+    <link href={{ url_for("static", filename="css/lib/bootstrap.min.css") }} rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href={{ url_for("static", filename="css/lib/starter-template.css") }} rel="stylesheet">
+    <title>B2C Clinical Supervisor</title>
+
+</head>
+
+<body>
+
+{% block navbar %}
+    {% include 'nav.html' %}
+{%- endblock navbar %}
+
+{% block content -%}
+{%- endblock content %}
+<img src="/static/img/unicorn-puke.png" alt=unicorns>
+
+
+<!-- Bootstrap core JavaScript ...
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src={{ url_for("static", filename="js/lib/jquery-2.0.3.min.js") }}></script>
+<script src={{ url_for("static", filename="js/lib/jquery.checkboxes-1.0.6.min.js") }}></script>
+<script src={{ url_for("static", filename="js/lib/bootstrap.min.js") }}></script>
+</body>
+</html>

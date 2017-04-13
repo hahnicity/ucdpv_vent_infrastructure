@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <p>This will perform a removal of <b><i>ALL</i></b> files from the rpi. <b>DO THIS ONLY IF YOU KNOW WHAT YOU ARE DOING</b></p>
+    <br>
+    <p>No seriously, what you are doing could cause data loss. Be sure you have performed a backup before doing this</p>
+    {% include 'rpi_capture.html' %}
+{% endblock %}

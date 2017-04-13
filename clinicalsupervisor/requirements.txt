@@ -1,0 +1,5 @@
+uwsgi
+flask>=0.10
+nose
+Flask-Testing
+mock

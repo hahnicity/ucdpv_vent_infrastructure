@@ -1,0 +1,13 @@
+<div class="container">
+    <form id="input_form" onsubmit="appendRpiName()">
+      rpi name: <input type="text" id="rpi_name"><br>
+      <input type="submit" value="Submit">
+    </form>
+</div>
+<script>
+	function appendRpiName() {
+		var form = document.getElementById("input_form");
+		var rpiName = document.getElementById("rpi_name").value
+            form.action = "{{ url_path }}/{{ api_name }}/" + rpiName;
+	}
+</script>
