@@ -1,0 +1,16 @@
+[prod:children]
+rpis
+rpi-backups
+clinicalsupervisor
+
+[rpi-backups]
+b2c-main
+
+[clinicalsupervisor]
+b2c-main
+
+[rpis]
+rpi[1:60]
+
+[rpis:vars]
+change_hostnames=true

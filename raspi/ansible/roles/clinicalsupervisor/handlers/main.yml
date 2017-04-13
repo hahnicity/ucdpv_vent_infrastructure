@@ -1,0 +1,18 @@
+---
+
+- name: start supervisor
+  command: /usr/local/bin/supervisord -c /etc/supervisor/supervisord.conf
+  tags:
+    - clinicalsupervisor
+
+- name: reload apache
+  service: name=apache2 state=reloaded
+
+- name: restart clinicalsupervisor
+  supervisorctl: name=clinicalsupervisor state=restarted config=/etc/supervisor/supervisord.conf
+
+- name: restart clinicalsupervisor nginx
+  command: /usr/local/bin/nginx -s reload
+
+- name: load launchd file
+  command: 'launchctl load -w /Library/LaunchDaemons/com.b2c.supervisord.plist'

@@ -1,0 +1,34 @@
+- name: setup /etc/hostname
+  hostname: name={{ inventory_hostname }}
+  when: change_hostnames
+  tags:
+    - configuration
+    - hostname
+
+- name: Set up network interfaces
+  copy: src=interfaces dest=/etc/network/interfaces mode=0600
+  tags:
+    - configuration
+
+- name: Setup wpa_supplicant.conf
+  template: src=wpa_supplicant.conf dest=/etc/wpa_supplicant/ mode=0600
+  tags:
+    - configuration
+
+- name: Ensure we cannot login as pi user from boot
+  copy: src=lightdm.conf dest=/etc/lightdm/ mode=0644
+  tags:
+    - configuration
+
+- name: setup ntp config
+  template: src=ntp.conf dest=/etc/ntp.conf mode=0644
+  notify:
+    - restart ntp
+  tags:
+    - configuration
+    - ntp
+
+- name: Add our own apt-mirror
+  template: src=apt-mirror dest=/etc/apt/sources.list.d/b2c-apt-mirror.list
+  tags:
+    - apt_mirror

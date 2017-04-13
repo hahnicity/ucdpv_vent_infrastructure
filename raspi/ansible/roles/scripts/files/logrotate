@@ -1,0 +1,5 @@
+/var/log/gwf.log {
+    100k
+    missingok
+    shred
+}

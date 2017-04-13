@@ -1,0 +1,5 @@
+- hosts: rpis
+  roles:
+    - geerlingguy.firewall
+    - minimalconfig
+    - scripts

@@ -1,0 +1,8 @@
+- hosts: rpis
+  roles:
+    - geerlingguy.firewall
+    - mivok0.users
+    - ssh
+    - minimalconfig
+    - scripts
+    - extraconfig

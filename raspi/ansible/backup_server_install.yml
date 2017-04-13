@@ -1,0 +1,9 @@
+- hosts: rpi-backups
+  roles:
+    - mivok0.users
+    - ssh
+    - rpi-backups
+
+- hosts: clinicalsupervisor
+  roles:
+    - clinicalsupervisor

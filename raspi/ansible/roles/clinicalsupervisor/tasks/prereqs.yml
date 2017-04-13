@@ -1,0 +1,22 @@
+---
+
+- name: Install brew python
+  homebrew: name=python
+  sudo: no
+  tags:
+    - clinicalsupervisor
+  notify:
+    - start supervisor
+
+- name: ensure pip is locateable in /usr/local/sbin due to ansible bug
+  file: src=/usr/local/bin dest=/usr/local/sbin state=link
+  tags:
+    - clinicalsupervisor
+
+- name: Install root python prereqs
+  pip: name={{ item }}
+  with_items:
+    - virtualenv
+    - supervisor
+  tags:
+    - clinicalsupervisor

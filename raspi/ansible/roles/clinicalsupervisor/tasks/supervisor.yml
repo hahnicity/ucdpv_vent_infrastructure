@@ -1,0 +1,30 @@
+---
+
+- name: Create supervisor dirs
+  file: dest=/etc/supervisor/conf.d state=directory
+  tags:
+    - clinicalsupervisor
+
+- name: Setup supervisord main config
+  copy: dest=/etc/supervisor/ src=supervisord.conf
+  tags:
+    - clinicalsupervisor
+
+- name: setup launchd config file
+  copy: dest="/Library/LaunchDaemons/com.b2c.supervisord.plist" src=launchd-supervisor.conf
+  tags:
+    - clinicalsupervisor
+  notify:
+    - load launchd file
+
+- name: Setup clinicalsupervisor supervisord config
+  copy: src=clinicalsupervisor-supervisor.conf dest=/etc/supervisor/conf.d/clinicalsupervisor.conf
+  tags:
+    - clinicalsupervisor
+  notify:
+    - restart clinicalsupervisor
+
+- name: register supervisor app
+  supervisorctl: name=clinicalsupervisor state=present config=/etc/supervisor/supervisord.conf
+  tags:
+    - clinicalsupervisor

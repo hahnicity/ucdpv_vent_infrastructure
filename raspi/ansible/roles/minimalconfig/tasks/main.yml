@@ -1,0 +1,24 @@
+---
+- name: Set timezone to PST
+  copy: src=timezone dest=/etc/timezone
+  notify:
+    - update timezone
+  tags:
+    - configuration
+    - timezone
+
+- name: Set all rpi keyboard setups to US
+  copy: src=keyboard dest=/etc/default/keyboard
+  tags:
+    - configuration
+
+- name: setup sudoers file
+  copy: src=sudoers dest=/etc/sudoers mode=0440
+  tags:
+    - config
+    - sudoers
+
+- name: Ensure Data dir present
+  file: dest=/home/pi/Data state=directory mode=0775 owner=pi group=pi
+  tags:
+    - configuration

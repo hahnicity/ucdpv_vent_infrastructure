@@ -1,0 +1,17 @@
+upstream clinicalsupervisor {
+    server unix:///var/tmp/clinicalsupervisor.sock;
+}
+
+server {
+    listen 80;
+    charset utf-8;
+
+    location /clinicalsupervisor/ {
+        uwsgi_pass clinicalsupervisor;
+        include /usr/local/etc/nginx/uwsgi_params;
+        uwsgi_read_timeout {{ clinicalsupervisor_read_timeout }};
+    }
+    location ^~ /static/ {
+        root /Applications/clinicalsupervisor/venv/lib/python2.7/site-packages/clinicalsupervisor;
+    }
+}

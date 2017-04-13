@@ -1,0 +1,6 @@
+---
+
+- include: prereqs.yml
+- include: app.yml
+- include: supervisor.yml
+- include: nginx.yml

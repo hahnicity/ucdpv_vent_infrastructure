@@ -1,0 +1,19 @@
+# loopback network interface
+auto lo
+
+iface lo inet loopback
+#
+# The LAN network interface
+# below commented by jpd
+# auto eth0             
+iface eth0 inet dhcp
+
+# line below added by jpd
+auto wlan0           
+allow-hotplug wlan0
+#
+iface wlan0 inet manual
+
+wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
+
+iface default inet dhcp

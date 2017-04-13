@@ -1,0 +1,24 @@
+---
+
+- name: unload apache
+  command: launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
+  tags:
+    - clinicalsupervisor
+
+- name: Install brew nginx
+  homebrew: name=nginx
+  sudo: no
+  tags:
+    - clinicalsupervisor
+
+- name: Insert clinicalsupervisor nginx config
+  template: src=clinicalsupervisor-nginx dest=/usr/local/etc/nginx/servers/clinicalsupervisor
+  tags:
+    - clinicalsupervisor
+  notify:
+    - restart clinicalsupervisor nginx
+
+- name: initialize launchd nginx
+  copy: src=launchd-nginx.conf dest=/Library/LaunchDaemons/com.b2c.nginx.plist
+  tags:
+    - clinicalsupervisor

@@ -1,0 +1,3 @@
+- include: rpi_full_install.yml
+  vars:
+    change_hostnames: false

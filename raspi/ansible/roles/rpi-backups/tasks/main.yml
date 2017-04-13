@@ -1,0 +1,26 @@
+---
+- name: Install latest rsync
+  macports: name=rsync
+  tags:
+    - backups
+
+- name: Setup rpi directories
+  file:
+    dest={{ ansible_distribution|find_home_dir_root }}/retriever/Data/{{ item }}
+    state=directory
+    owner=retriever
+    group=retriever
+  with_items: groups['rpis']
+  tags:
+    - backups
+
+- name: Execute backup on rpis
+  cron:
+    name="backup data files onto server for {{ item }}"
+    minute={{ item|set_backup_crontab_minute }}
+    job="/opt/local/bin/rsync -re 'ssh {{ rsync_ssh_options }}' backup@{{ item|get_rpi_ip_addr }}:/home/pi/Data/* {{ ansible_distribution|find_home_dir_root }}/retriever/Data/{{ item }}"
+    user=retriever
+  with_items: groups['rpis']
+  sudo: yes
+  tags:
+    - backups

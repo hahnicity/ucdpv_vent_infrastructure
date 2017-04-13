@@ -1,0 +1,4 @@
+---
+
+clinicalsupervisor_version: "0.5.2"
+clinicalsupervisor_read_timeout: 3600

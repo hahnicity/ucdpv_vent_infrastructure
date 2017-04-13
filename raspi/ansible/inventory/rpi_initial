@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+import datetime
+import json
+import os
+import subprocess
+
+from netifaces import interfaces, ifaddresses, AF_INET
+
+
+def filter_ips_by_lan(ip):
+    if ip and "192.168.2" in ip:
+        return True
+    return False
+
+
+def get_provisioner_lan_ip():
+    addresses = [
+        i['addr']
+        for iface in interfaces()
+        for i in ifaddresses(iface).setdefault(
+            AF_INET,
+            [{'addr': None}]
+        )
+        if iface != "lo"
+    ]
+    return filter(filter_ips_by_lan, addresses)
+
+
+def get_rpi_ips(provisioner_lan_ips):
+    generic_lan_ips = set()
+    # what the heck why not just look for 20 devices
+    # So the router seems to be mapping ips to devices.
+    # we can change this by shortening DHCP leases. but
+    # for now just search all over the network
+    for i in range(2, 60 + len(provisioner_lan_ips)):
+        generic_lan_ips.add("192.168.2.{}".format(i))
+    for ip in provisioner_lan_ips:
+        generic_lan_ips.remove(ip)
+    return list(generic_lan_ips)
+
+
+def disable_known_hosts():
+    """
+    Move known hosts file in a backup kind of way. Otherwise we will
+    eventually need to reset the known hosts entries for some of the rpi's
+    """
+    home_dir = os.getenv("HOME")
+    if not home_dir:
+        raise Exception("Could not find your home directory")
+    strftime = datetime.datetime.now().strftime("%Y-%m-%d.%H-%M-%S")
+    proc = subprocess.Popen([
+        "mv",
+        "{}/.ssh/known_hosts".format(home_dir),
+        "{}/.ssh/known_hosts.bak.{}".format(home_dir, strftime)
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    proc.communicate()
+
+
+def main():
+    provisioner_lan_ips = get_provisioner_lan_ip()
+    if not provisioner_lan_ips:
+        raise Exception(
+            "The provisioner machine is not connected to the provisioning "
+            "LAN!"
+        )
+
+    lan_type = "prod"
+    disable_known_hosts()
+    ips = get_rpi_ips(provisioner_lan_ips)
+    print json.dumps({
+        lan_type: {
+            "children": ["rpis"],
+            "vars": {"change_hostnames": False},
+        },
+        "rpis": ips,
+    })
+
+
+if __name__ == "__main__":
+    main()
