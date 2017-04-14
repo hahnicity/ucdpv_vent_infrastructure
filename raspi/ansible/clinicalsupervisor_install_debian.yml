@@ -1,9 +1,8 @@
-- hosts: rpi-backups
+# XXX TODO before publication
+
+- hosts: clinicalsupervisor
   roles:
     - mivok0.users
     - ssh
     - rpi-backups
-
-- hosts: clinicalsupervisor
-  roles:
     - clinicalsupervisor

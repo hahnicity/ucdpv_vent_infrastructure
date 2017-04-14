@@ -22,6 +22,8 @@ VENT_FILE_TS_FORMAT = "%Y-%m-%d-%H-%M-%S.%f"
 TS_INCREMENT = timedelta(seconds=0.02)
 csv.field_size_limit(sys.maxsize)
 
+# XXX remove host and password
+
 
 def set_microseconds(ts):
     micro = int(str(ts.microsecond)[:2])

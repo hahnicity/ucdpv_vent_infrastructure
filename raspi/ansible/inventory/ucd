@@ -1,10 +1,6 @@
 [prod:children]
 rpis
-rpi-backups
 clinicalsupervisor
-
-[rpi-backups]
-b2c-main
 
 [clinicalsupervisor]
 b2c-main

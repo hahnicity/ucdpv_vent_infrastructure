@@ -6,9 +6,11 @@ import subprocess
 
 from netifaces import interfaces, ifaddresses, AF_INET
 
+from raspi import lan_prefix
+
 
 def filter_ips_by_lan(ip):
-    if ip and "192.168.2" in ip:
+    if ip and lan_prefix in ip:
         return True
     return False
 
@@ -33,7 +35,7 @@ def get_rpi_ips(provisioner_lan_ips):
     # we can change this by shortening DHCP leases. but
     # for now just search all over the network
     for i in range(2, 60 + len(provisioner_lan_ips)):
-        generic_lan_ips.add("192.168.2.{}".format(i))
+        generic_lan_ips.add("{}.{}".format(lan_prefix, i))
     for ip in provisioner_lan_ips:
         generic_lan_ips.remove(ip)
     return list(generic_lan_ips)
