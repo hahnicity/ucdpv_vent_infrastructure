@@ -25,6 +25,8 @@ The first step in image flashing is to get an SD card reader/writer device. Hook
 it up to your computer and then insert the raspberry pi's SD card into the
 device.
 
+You can [obtain the image here][1].
+
 #### From Debian
 From a debian based machine pick the image you want to use from ... then run
 the following command
@@ -41,7 +43,16 @@ will be different
     dd if=ucdpv-jessie.img bs=4M of=/dev/rdisk2s2
 
 #### Final configuration
-First the wifi network being used will need to be modified in `/etc/wpa_supplicant/wpa_supplicant.conf`.
+If there are network restrictions present on the wifi network being used
+that the raspberry pis cannot access the outside internet then specific NTP servers
+will need to be used. Go to `/etc/ntp.conf` and modify the file so that the NTP
+server addresses that are available. Configuration should look like
+
+    server <host1 ip addr> iburst
+    server <host2 ip addr> iburst
+
+##### Wifi
+The wifi network being used will need to be modified in `/etc/wpa_supplicant/wpa_supplicant.conf`.
 Modify the file like so
 
     network={
@@ -49,13 +60,13 @@ Modify the file like so
         psk=<WiFi password>
     }
 
-Finally, if there are network restrictions present on the wifi network being used
-that the raspberry pis cannot access the outside internet then specific NTP servers
-will need to be used. Go to `/etc/ntp.conf` and modify the file so that the NTP
-server addresses that are available. Configuration should look like
+Then restart the networking service to gain wifi connectivity
 
-    server <host1 ip addr> iburst
-    server <host2 ip addr> iburst
+    sudo service network restart
+
+##### Ethernet
+No additional configuration is required here other than hooking an ethernet cable
+to the raspberry pi.
 
 ### Via Ansible
 If you have already setup your raspberry pi using NOOBS or some other tool and want
@@ -99,3 +110,6 @@ under the `[clinicalsupervisor]` group.
 ### Debian
 
     ansible-playbook -i inventory/<inv file name> clinicalsupervisor_install_debian.yml
+
+
+[1]: https://ucdavis.app.box.com/s/b9wn4bux6piwhy3kzfs7lj6wpu55tiav
