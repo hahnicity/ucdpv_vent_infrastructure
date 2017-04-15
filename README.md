@@ -21,6 +21,41 @@ Now all dependent packages should be installed
 ## Raspberry Pi Setup
 
 ### Via image flashing
+The first step in image flashing is to get an SD card reader/writer device. Hook
+it up to your computer and then insert the raspberry pi's SD card into the
+device.
+
+#### From Debian
+From a debian based machine pick the image you want to use from ... then run
+the following command
+
+    dd if=ucdpv-jessie.img bs=4M of=/dev/sdb
+
+After this remove the SD card from the device and insert it into the raspberry pi
+to boot.
+
+#### From OSX
+Setup is relatively the same as in Debian based machines here except the `of` input
+will be different
+
+    dd if=ucdpv-jessie.img bs=4M of=/dev/rdisk2s2
+
+#### Final configuration
+First the wifi network being used will need to be modified in `/etc/wpa_supplicant/wpa_supplicant.conf`.
+Modify the file like so
+
+    network={
+        ssid=<WiFi SSID>
+        psk=<WiFi password>
+    }
+
+Finally, if there are network restrictions present on the wifi network being used
+that the raspberry pis cannot access the outside internet then specific NTP servers
+will need to be used. Go to `/etc/ntp.conf` and modify the file so that the NTP
+server addresses that are available. Configuration should look like
+
+    server <host1 ip addr> iburst
+    server <host2 ip addr> iburst
 
 ### Via Ansible
 If you have already setup your raspberry pi using NOOBS or some other tool and want
