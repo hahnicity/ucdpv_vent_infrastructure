@@ -1,4 +1,9 @@
 # ucdpv_vent_infrastructure
+The [UCDPV vent infrastructure][1] is designed to allow anyone to use off the shelf
+commercial products to set up a fully functional clinical informatics study
+for collecting of mechanical ventilator data.
+
+In this README installation and usage instructions are provided.
 
 ## Installing dependencies
 To install all dependent packages the user first needs install virtualenv. Using
@@ -25,7 +30,7 @@ The first step in image flashing is to get an SD card reader/writer device. Hook
 it up to your computer and then insert the raspberry pi's SD card into the
 device.
 
-You can [obtain the image here][1].
+You can [obtain the image here][2].
 
 #### From Debian
 From a debian based machine pick the image you want to use from ... then run
@@ -103,6 +108,26 @@ Activate your virtual environment, navigate to `raspi/ansible`. Create a new
 inventory script using `inventory/ucd` as an example. Input the host DNS name
 under the `[clinicalsupervisor]` group.
 
+If the database plugin is desired for use then the installer will need to modify
+the file `group_vars/clinicalsupervisor` and the variables `database_host` and
+`database_password`. To ensure these variables stay secret it is highly recommended
+to use `ansible-vault` to encrypt this file so that secure information is not
+gained by unauthorized parties.
+
+### Static DNS
+The clinicalsupervisor is able to communicate with the raspberry pi's through either
+regular or static DNS. If for some reason the raspberry pi's are unable to be listed
+in an institution DNS server or DNS is spotty then static DNS will need to be used.
+Static DNS addresses can be provided to the clinicalsupervisor through the
+`group_vars/clinicalsupervisor` file. If you are using static DNS but a raspberry pi
+is not listed, then regular DNS will be used. Static addresses can be added like
+this:
+
+    static_dns:
+        hostname1: 192.168.1.5
+        hostname2: 192.168.1.6
+        ...
+
 ### OSX
 
     ansible-playbook -i inventory/<inv file name> clinicalsupervisor_install_osx.yml
@@ -111,5 +136,53 @@ under the `[clinicalsupervisor]` group.
 
     ansible-playbook -i inventory/<inv file name> clinicalsupervisor_install_debian.yml
 
+## Usage
 
-[1]: https://ucdavis.app.box.com/s/b9wn4bux6piwhy3kzfs7lj6wpu55tiav
+### Raspberry Pi
+To use the raspberry pis, first get a micro-usb power cable and usb-to-RS232 serial
+cable. Take the raspberry pi with these components to the ventilator and hook the RS232 cable to the
+the primary serial port of the PB-840 ventilator and the usb side to the raspberry pi. Power
+the raspberry pi with the power cable, and ensure the ventilator is currently
+operating. Once the ventilator is operating waveform data collection will begin.
+
+### Clinicalsupervisor
+There are several pieces of functionality that the clinicalsupervisor utilizes
+to perform its job.
+
+1. Listing files
+2. Backing up files
+3. Deleting files
+4. Enrolling a patient
+
+In each case the clinicalsupervisor asks for an input of the raspberry pi name
+before continuing. The raspberry pi name is the DNS name for the device on the
+network. If this has not been created but the pi's are connected to the network
+and have a static ip address then a static DNS service hosted by the clinicalsupervisor
+can be used. For details about setting this up go to the section on `Static DNS`
+in the installation guide.
+
+#### Listing files
+If the user desires to know the filenames on a raspberry pi then the `List` button
+on the top nav bar will allow this.
+
+#### Backing up files
+This will perform a backup of all files currently on the raspberry pi. Use the
+`Backups` button on the nav bar for this.
+
+#### Deleting files
+This should only be done if the files in question have been backed up or are
+owned by a patient not qualified for a study. If this action is completed ALL
+mechanical waveform files on the raspberry pi will be deleted. Go to `Full Clean` for this.
+
+#### Enrolling patients
+If you desire to collect all of a patient's mechanical waveform data and store it
+in a patient unique location then click the `Enroll` button. First you will be
+asked to enter the raspberry pi name, after doing this, all files on the pi will be backed
+up. Then you will be asked to select all files belonging to a specific patient. Do this and
+input a patient unique identifier. If the identifier is not
+unique then waveform data from one patient may be confused with waveform data from
+another. After inputting a unique identifier, all data will be moved to a patient
+specific folder, and data on the pi will be deleted.
+
+[1]: https://github.com/hahnicity/ucdpv_vent_infrastructure
+[2]: https://ucdavis.app.box.com/s/b9wn4bux6piwhy3kzfs7lj6wpu55tiav

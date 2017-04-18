@@ -10,5 +10,10 @@ users:
 
 clinicalsupervisor_version: "0.5.2"
 clinicalsupervisor_read_timeout: 3600
+database_host: unused
+database_password: unused
 
 rsync_ssh_options: "-o StrictHostKeyChecking=no -o Ciphers=arcfour256,arcfour128,blowfish-cbc,aes128-cbc,aes128-ctr,aes192-ctr,aes256-ctr,3des-cbc -o Compression=yes -o ConnectTimeout=5"
+
+static_dns:
+    hostname1: ipaddr1
