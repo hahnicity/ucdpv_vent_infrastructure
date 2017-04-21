@@ -48,15 +48,15 @@ will be different
 
 #### Final configuration
 ##### Network Operations and NTP Setup
-It is important to note that without a connection to an NTP server, ventilator data collection
-will **NOT** commence. At our institution network operations necessitated the RPi devices be located
-behind a secure firewall. If this is the case after consulting with NetOps then
-internet access to public NTP servers may not be available. If this is not the case at your
+It is important to note that without a connection to an NTP server ventilator data collection
+will **NOT** commence. At UCD NetOps necessitated the RPi devices be located
+behind a secure firewall. If this is the case with you after consulting with NetOps then
+internet access to public NTP servers may not be available. If this is not the pertinent to your
 institution then this section is unnecessary.
 
 If there are network restrictions present on the wifi network then specific NTP servers
 will need to be used. Go to `/etc/ntp.conf` and modify the file so that the NTP
-server addresses that are available. Configuration should look like
+server addresses, specific to your institution, are used. Configuration should look like
 
     server <host1 ip addr> iburst
     server <host2 ip addr> iburst
@@ -70,7 +70,7 @@ Modify the file like so
         psk=<WiFi password>
     }
 
-Then restart the networking service to gain wifi connectivity
+Then, on the command line, restart the networking service to gain wifi connectivity
 
     sudo service network restart
 
@@ -93,16 +93,20 @@ known then you can type in the command
 The network address should look something similiar to `192.168.1.10`. Here take
 the first 3 numbers of this address and open the file `raspi/__init__.py`
 
-    nano `raspi/__init__.py`
+    nano raspi/__init__.py
 
 Now enter the first 3 numbers in the address into the `lan_prefix`
 variable name. For example if your address was `192.168.1.10` you would enter
 `lan_prefix = "192.168.1"`.
 
 #### Raspberry Pi minimal setup
-Since Ansible was installed in previous steps, now that the provisioning LAN is setup,
+Since Ansible was installed in previous steps and the provisioning LAN is now setup,
 plug an ethernet cable from the router into the raspberry pi. Navigate
-to the `raspi/ansible` directory and modify the file at `group_vars/prod`.
+to the `raspi/ansible` directory
+
+    cd raspi/ansible
+
+and modify the file at `group_vars/prod`.
 Here enter the production network's wireless SSID and password.
 Also enter the network's ntp server host ip addresses. Finally
 installation can proceed. To install all necessary software
@@ -121,7 +125,8 @@ If the database plugin is desired for use then the installer will need to modify
 the file `group_vars/clinicalsupervisor` and the variables `database_host` and
 `database_password`. To ensure these variables stay secret it is highly recommended
 to use `ansible-vault` to encrypt this file so that secure information is not
-gained by unauthorized parties.
+gained by unauthorized parties. Information on how to use `ansible-vault` is located
+[here][3].
 
 ### Static DNS
 The clinicalsupervisor is able to communicate with the raspberry pi's through either
@@ -195,3 +200,4 @@ specific folder, and data on the pi will be deleted.
 
 [1]: https://github.com/hahnicity/ucdpv_vent_infrastructure
 [2]: https://ucdavis.app.box.com/s/b9wn4bux6piwhy3kzfs7lj6wpu55tiav
+[3]: https://docs.ansible.com/ansible/playbooks_vault.html
