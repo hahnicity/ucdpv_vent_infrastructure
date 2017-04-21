@@ -16,7 +16,7 @@ Then create a new virtual environment and activate it
     virtualenv venv
     source venv/bin/activate
 
-Next navigate to the base directory where `setup.py` is. Run the following command
+Next navigate to the root directory where `setup.py` is. Run the following command
 
     pip install -e .
     python setup.py develop
@@ -33,8 +33,7 @@ device.
 You can [obtain the image here][2].
 
 #### From Debian
-From a debian based machine pick the image you want to use from ... then run
-the following command
+From a debian based machine download the image then run the following command
 
     dd if=ucdpv-jessie.img bs=4M of=/dev/sdb
 
@@ -48,8 +47,14 @@ will be different
     dd if=ucdpv-jessie.img bs=4M of=/dev/rdisk2s2
 
 #### Final configuration
-If there are network restrictions present on the wifi network being used
-that the raspberry pis cannot access the outside internet then specific NTP servers
+##### Network Operations and NTP Setup
+It is important to note that without a connection to an NTP server, ventilator data collection
+will **NOT** commence. At our institution network operations necessitated the RPi devices be located
+behind a secure firewall. If this is the case after consulting with NetOps then
+internet access to public NTP servers may not be available. If this is not the case at your
+institution then this section is unnecessary.
+
+If there are network restrictions present on the wifi network then specific NTP servers
 will need to be used. Go to `/etc/ntp.conf` and modify the file so that the NTP
 server addresses that are available. Configuration should look like
 
@@ -86,16 +91,20 @@ known then you can type in the command
     ifconfig
 
 The network address should look something similiar to `192.168.1.10`. Here take
-the first 3 numbers of this address and input it into `__init__.py` in the raspi
-directory. Now enter the first 3 numbers in the address into the `lan_prefix`
+the first 3 numbers of this address and open the file `raspi/__init__.py`
+
+    nano `raspi/__init__.py`
+
+Now enter the first 3 numbers in the address into the `lan_prefix`
 variable name. For example if your address was `192.168.1.10` you would enter
 `lan_prefix = "192.168.1"`.
 
 #### Raspberry Pi minimal setup
-Now that the provisioning LAN is setup, plug an ethernet cable from the router
-into the raspberry pi. Navigate to the `raspi/ansible` directory and modify the
-file at `group_vars/prod`. Here enter the production network's wireless SSID and
-password. Also enter the network's ntp server host ip addresses. Finally
+Since Ansible was installed in previous steps, now that the provisioning LAN is setup,
+plug an ethernet cable from the router into the raspberry pi. Navigate
+to the `raspi/ansible` directory and modify the file at `group_vars/prod`.
+Here enter the production network's wireless SSID and password.
+Also enter the network's ntp server host ip addresses. Finally
 installation can proceed. To install all necessary software
 
     ansible-playbook -u pi --ask-sudo -i inventory/rpi_initial rpi_minimal_install.yml
@@ -152,7 +161,7 @@ to perform its job.
 1. Listing files
 2. Backing up files
 3. Deleting files
-4. Enrolling a patient
+4. Gather patient data
 
 In each case the clinicalsupervisor asks for an input of the raspberry pi name
 before continuing. The raspberry pi name is the DNS name for the device on the
@@ -174,7 +183,7 @@ This should only be done if the files in question have been backed up or are
 owned by a patient not qualified for a study. If this action is completed ALL
 mechanical waveform files on the raspberry pi will be deleted. Go to `Full Clean` for this.
 
-#### Enrolling patients
+#### Gathering patient data
 If you desire to collect all of a patient's mechanical waveform data and store it
 in a patient unique location then click the `Enroll` button. First you will be
 asked to enter the raspberry pi name, after doing this, all files on the pi will be backed
