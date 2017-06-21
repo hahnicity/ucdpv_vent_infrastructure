@@ -30,7 +30,7 @@
   tags:
     - configuration
 
-- name: Ensure we cannot login as pi user from boot
+- name: Setup lightdm settings
   copy: src=lightdm.conf dest=/etc/lightdm/ mode=0644
   tags:
     - configuration
