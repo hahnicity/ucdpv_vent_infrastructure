@@ -17,3 +17,5 @@
   roles:
     - minimalconfig
     - scripts
+  vars:
+    change_hostnames: false

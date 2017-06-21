@@ -3,6 +3,12 @@ apt_mirror_ip: XXX --- insert host ip for apt mirror --- XXX
 users_create_per_user_group: True
 shutdown_rpis: false
 
+wireless_ssid: XXX
+wireless_psk: XXX
+ntp_server_ips:
+  - ipXXX
+  - ip2XXX
+
 users:
   - username: 'backup'
     name: Backup User

@@ -106,7 +106,7 @@ to the `raspi/ansible` directory
 
     cd raspi/ansible
 
-and modify the file at `group_vars/prod`.
+and modify the file at `group_vars/rpis`.
 Here enter the production network's wireless SSID and password.
 Also enter the network's ntp server host ip addresses. Finally
 installation can proceed. To install all necessary software

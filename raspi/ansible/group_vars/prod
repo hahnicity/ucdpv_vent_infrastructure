@@ -1,5 +1,0 @@
-wireless_ssid: XXX
-wireless_psk: XXX
-ntp_server_ips:
-  - ipXXX
-  - ip2XXX

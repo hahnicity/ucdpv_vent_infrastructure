@@ -1,7 +1,3 @@
-[prod:children]
-rpis
-clinicalsupervisor
-
 [clinicalsupervisor]
 b2c-main
 
