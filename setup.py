@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     package_data={"*": ["*.html"]},
     install_requires=[
-        "ansible",
+        "ansible<2.0",
         "cryptography",
         "Flask-WTF",
         "mock",
