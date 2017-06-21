@@ -1,9 +1,6 @@
 ---
 apt_mirror_ip: XXX --- insert host ip for apt mirror --- XXX
 users_create_per_user_group: True
-firewall_allowed_tcp_ports:
-  - "22"
-firewall_log_dropped_packets: False
 shutdown_rpis: false
 
 users:

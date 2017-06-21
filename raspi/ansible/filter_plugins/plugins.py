@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-# I know this might not be the best of plans but it saves code duplication
+# XXX Remove
 from clinicalsupervisor.defaults import COMPLETE_ARTIFICIAL_DNS
 
 
@@ -31,6 +31,7 @@ def get_all_hostnames(rpi_ip_map):
     return ",".join(hostnames)
 
 
+# XXX Remove
 def get_rpi_ip_addr(rpi_name):
     return COMPLETE_ARTIFICIAL_DNS[rpi_name]
 
