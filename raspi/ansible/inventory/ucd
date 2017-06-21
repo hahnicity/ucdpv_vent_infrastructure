@@ -6,7 +6,7 @@ clinicalsupervisor
 b2c-main
 
 [rpis]
-rpi[1:60]
+rpi[1:10]
 
 [rpis:vars]
 change_hostnames=true

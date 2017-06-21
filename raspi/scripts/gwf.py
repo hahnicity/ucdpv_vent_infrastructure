@@ -1,5 +1,6 @@
 """
-ucdv_vent_infrastructure "Platform for collecting, aggregating, and storing ventilator data"
+ucdv_vent_infrastructure "Platform for collecting, aggregating, and storing ventilator
+ data"
 Copyright (C) 2017 Gregory Rehm
 
 This program is free software: you can redistribute it and/or modify
@@ -103,6 +104,8 @@ def perform_ntp_sync():
         if check_if_wifi_available():
             break
         else:
+            process = get_process(["sudo", "service", "networking", "restart"])
+            perform_command_and_validate(process, "networking service restart failed")
             process = get_process(["sudo", "ifdown", "wlan0"])
             perform_command_and_validate(process, "Could not take wlan0 down")
             process = get_process(["sudo", "ifup", "wlan0"])
@@ -132,7 +135,7 @@ def execute_get_serial(env_type):
         try:
             get_serial.get_serial(env_type)
         except Exception as err:
-            logging.warn("Error in get_serial: {}".format(err.message))
+            logging.warn("Error in get_serial: {}".format(traceback.format_exc()))
             time.sleep(GET_SERIAL_FAILURE_WAIT)
 
 

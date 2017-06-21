@@ -1,5 +1,6 @@
 """
-ucdv_vent_infrastructure "Platform for collecting, aggregating, and storing ventilator data"
+ucdv_vent_infrastructure "Platform for collecting, aggregating, and storing ventilator
+ data"
 Copyright (C) 2017 Gregory Rehm
 
 This program is free software: you can redistribute it and/or modify
@@ -47,8 +48,11 @@ def set_file_permissions(filename):
 
 
 def flush_serial_buffers(serial_reader):
-    serial_reader.flushInput()
-    serial_reader.flushOutput()
+    try:
+        serial_reader.flushInput()
+        serial_reader.flushOutput()
+    except serial.SerialException:
+        pass
 
 
 def retrieve_data(filename, config, serial_reader):
@@ -68,8 +72,15 @@ def retrieve_data(filename, config, serial_reader):
         read_time_start = time.time()
         while elapsed < config["refresh_rate"]:
             elapsed = time.time() - begin
-            if serial_reader.inWaiting() > 0:
-                line = serial_reader.readline()
+            try:
+                n_waiting = serial_reader.inWaiting()
+            except serial.SerialException:
+                continue
+            if n_waiting > 0:
+                try:
+                    line = serial_reader.readline()
+                except (serial.SerialException, OSError):
+                    continue
                 f.write(line)
                 f.flush()
                 read_time_start = time.time()
