@@ -12,7 +12,8 @@ vent infrastructure:
  1. A Raspberry Pi device and power cable.
  2. A shielded DB-9 to USB serial cable
  3. An RS-232 optical isolator
- 4. A linux/OSX computer. If windows is desired, then it must have Cygwin.
+ 4. A linux/OSX computer for the user's local machine. If windows absolutely desired, then it must have Cygwin. And even then ansible is not explicitly supported on windows.
+ 5. A server to run the clinicalsupervisor on. As a note: clinicalsupervisor setup does not need to be performed immediately, and data can be collected without it. However, at scale the clinicalsupervisor is critical.
 
 ## PB-840 Ventilator Setup
 The PB-840 ventilator will need to undergo several steps to enable data output
