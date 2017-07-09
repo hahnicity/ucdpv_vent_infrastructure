@@ -1,5 +1,5 @@
 ---
-apt_mirror_ip: XXX --- insert host ip for apt mirror --- XXX
+apt_mirror_ip: XXX --- insert host ip for apt mirror if you have one --- XXX
 users_create_per_user_group: True
 shutdown_rpis: false
 
@@ -8,6 +8,9 @@ wireless_psk: XXX
 ntp_server_ips:
   - ipXXX
   - ip2XXX
+
+pi_user_password: XXX
+retriever_pub_key: XXX
 
 users:
   - username: 'backup'
