@@ -206,13 +206,15 @@ with this public key.
 ## Usage
 
 ### Raspberry Pi
-To use the raspberry pis, first get a micro-usb power cable and usb-to-RS232 serial
-cable. Take the raspberry pi with these components to the ventilator and hook the DB-9 cable to the
-the primary serial port of the PB-840 ventilator and the usb side to the raspberry pi. Power
-the raspberry pi with the power cable, and ensure the ventilator is currently
-operating. Once the ventilator is operating waveform data collection will begin.
+To use the raspberry pis:
 
-XXX Which serial port? Probably #1 but be sure.
+  1. get a micro-usb power cable, shielded usb-to-RS232 serial cable, and optical isolator attachement
+  2. Hook Optical Isolator attachment to primary serial port of PB-840
+  3. Take the raspberry pi to the ventilator and hook the DB-9 cable to the the primary serial port of the PB-840 ventilator and the usb side to the raspberry pi.
+  4. Power the raspberry pi with the power cable,
+  5. ensure the ventilator is currently operating.
+
+Once the ventilator is operating waveform data collection will begin.
 
 ### Clinicalsupervisor
 There are several pieces of functionality that the clinicalsupervisor utilizes
@@ -240,7 +242,7 @@ This will perform a backup of all files currently on the raspberry pi. Use the
 
 #### Deleting files
 This should only be done if the files in question have been backed up or are
-owned by a patient not qualified for a study. If this action is completed ALL
+owned by a patient not qualified for a study. If this action is completed **ALL**
 mechanical waveform files on the raspberry pi will be deleted. Go to `Full Clean` for this.
 
 #### Gathering patient data
@@ -282,15 +284,14 @@ Raspberry Pi's should not be networked to communicate with anything via outbound
 connection. It is advised to perform firewalling at the network level to not allow
 outbound communications from the RPi's.
 
-#### PHI capability
+#### PHI Capability
 Currently, this system does not have the ability to be used for PHI data. This
 would require the modification of the system to either perform
 
  * resting encryption of all data
  * immediate transfer of PHI data to a more secure location
 
-If this capability is desired we would be happy to assist in the update of this
-platform.
+If this capability is desired you are free to modify this software under GPL.
 
 ### Clinicalsupervisor Hardening
 #### Basics
@@ -307,6 +308,17 @@ clinicalsupervisor like SSH configuration because we believe these things are be
 left in the hands of the user. If there are any other security details you feel
 that we've missed pull requests are always welcome :)
 
+## Software
+### Raspberry Pi
+#### PB-840 `get_serial.py`
+The `get_serial.py` script is the main software that completes the action of pulling data from the PB-840. It begins operation
+immediately after an NTP server is found and time is accurately updated on the system clock.
+After this, the software will search for a serial connection, and if one is found, data will be pulled from the Raspberry Pi and saved to a file.
+If for some reason there is a break in data collection for longer than 10 seconds the current file will be saved, closed, and a new file will be written to to maintain
+temporal accuracy of our feedforward timestamping mechanism.
+
+This software will run continuously in a loop as long as the RPi is turned on. If no data is available to be pulled, then
+no data will be written to file.
 
 [1]: https://github.com/hahnicity/ucdpv_vent_infrastructure
 [2]: https://ucdavis.app.box.com/s/b9wn4bux6piwhy3kzfs7lj6wpu55tiav
