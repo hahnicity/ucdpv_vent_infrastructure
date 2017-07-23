@@ -3,30 +3,35 @@ The [UCDPV vent infrastructure][1] is designed to allow anyone to use off the sh
 commercial products to set up a fully functional clinical informatics study
 for collecting of mechanical ventilator data.
 
-In this README installation and usage instructions are provided.
+In this README installation and usage instructions are provided. It is important to
+note that experienced, technical users should set the system up, but daily operation
+can be left to almost anyone, regardless of technical skill.
 
 ## Hardware Prerequisites
 The following components will be necessary before attempting to install the UCDPV
 vent infrastructure:
 
  1. A Raspberry Pi device and power cable.
- 2. A shielded DB-9 to USB serial cable
- 3. An RS-232 optical isolator
- 4. A linux/OSX computer for the user's local machine. If windows absolutely desired, then it must have Cygwin. And even then ansible is not explicitly supported on windows.
- 5. A server to run the clinicalsupervisor on. As a note: clinicalsupervisor setup does not need to be performed immediately, and data can be collected without it. However, at scale the clinicalsupervisor is critical.
+ 2. A shielded DB-9 to USB serial null modem cable
+ 3. An RS-232 optical isolator (if required at institution)
+ 4. A linux/OSX computer for the user's local machine. If windows absolutely desired, then it must have Cygwin. And even then, ansible is not explicitly supported on windows.
+ 5. A server to run the clinicalsupervisor. As a note: clinicalsupervisor setup does not need to be performed immediately, and data can be collected without it. However, at scale the clinicalsupervisor is critical.
 
 ## PB-840 Ventilator Setup
 The PB-840 ventilator will need to undergo several steps to enable data output
 from the RS-232 serial port.
 
-Consult your PB-840 technical manual for additional details about ventilator setup.
+On the PB-840 GUI, on the lower screen, click the icon on the far right side of the
+screen (Other Screens Icon). Go to the Communication Settings, select "Waveforms"
+for port 3 and change the following configuration settings to the following values
 
-XXX need jason to get back to me on this
-XXX which serial port are we using? 1, 2, or 3. Probably #1
+ 1. baud rate: 38400
+ 2. data bits: 8
+ 3. parity mode: 0
 
 ## Software Installion dependencies
 Once hardware dependencies are satisfied, and the ventilator is set up, the
-user will need to begin installing software on their local machine to set up the
+user will need to begin installing software on their local machine via terminal to set up the
 RPi devices. First, the user needs to install virtualenv. Using pip this can be
 done via
 
@@ -186,9 +191,12 @@ is meant to perform deletions of files when necessary, and `lister` is designed 
 only list the files in the data directory.
 
 As the sysadmin, you will need to create a passwordless, public/private keypair for
-the `retriever` user on the clinicalsupervisor host. Then, take the public key for
-this key pair and paste it into `group_vars/rpis` for the `retriever_pub_key` variable.
-After pasting the public key it should look like this:
+the `retriever` user on the clinicalsupervisor host. You can do this via terminal
+
+    ssh-keygen
+
+Then, take the public key for this key pair and paste it into `group_vars/rpis`
+for the `retriever_pub_key` variable. After pasting the public key it should look like this:
 
     retriever_pub_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChlZwB1+fMhvqVfP2ZV1pH8kH9rwpTYsBbcvCeLZ/cfeScn91RI3M9eWhdTOWD1O4T5FhgWkCjaVbDqDjKFmknSGXa9NaIicMX8fSUZ7Kda0PvfJBwwtewgS8uzhuxgXG2ltflh11W6c0c1sNI2XaGEZ7LlAE3bbkzP1PWvWCtqC8+s4ZeSNDFE2K0GCJmckbb0xw4CNFoVHj10kCdD1z/vGCV1YKKmUn7WRYL2Rcpw7HIOlprzHPhSgg2rda8GvqN0N8C9pbY+XMLiG0bU+iD8dgtg0h5gBBKNmicHp+SQQdtjlZcBtLYDDhTRI5tAKvpHSFqc8PK+n1WAaMWeY3x retriever@foo
 
@@ -208,13 +216,13 @@ with this public key.
 ### Raspberry Pi
 To use the raspberry pis:
 
-  1. get a micro-usb power cable, shielded usb-to-RS232 serial cable, and optical isolator attachement
-  2. Hook Optical Isolator attachment to primary serial port of PB-840
-  3. Take the raspberry pi to the ventilator and hook the DB-9 cable to the the primary serial port of the PB-840 ventilator and the usb side to the raspberry pi.
-  4. Power the raspberry pi with the power cable,
-  5. ensure the ventilator is currently operating.
+  1. get a micro-usb power cable, shielded usb-to-RS232 serial cable, and optical isolator attachement if this device is necessary
+  2. Hook optical isolator attachment to primary serial port of PB-840 (if necessary)
+  3. Take the raspberry pi to the ventilator and hook the DB-9 cable to serial port 3 of the PB-840 ventilator and the USB side to the RPi.
+  4. Power the raspberry pi with the power cable
+  5. Ensure the ventilator is currently operating, and displaying waveform data
 
-Once the ventilator is operating waveform data collection will begin.
+Once the ventilator is operating, the RPi will attempt to connect to an NTP server.Once connected to NTP, waveform data collection will begin.
 
 ### Clinicalsupervisor
 There are several pieces of functionality that the clinicalsupervisor utilizes
@@ -259,7 +267,7 @@ specific folder, and data on the pi will be deleted.
 Given you are working in a hospital environment, security will be a concern about
 any system used. As a result, we have taken steps to harden this system against intrusion.
 While no security protocol is perfect, the steps outlined, if followed, will ensure
-your system poses the minimal amount of security risk to the broader hospital infrastructure, and ensure the system will be able to survive if one component is compromised.
+your system poses the minimal amount of security risk to the broader hospital infrastructure.
 
 ### Raspberry Pi Hardening
 
