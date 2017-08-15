@@ -15,18 +15,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from os.path import join
+from os import remove
+from os.path import dirname, join
 
 from flask_testing import TestCase
 from mock import Mock, patch
 from nose.tools import eq_
+from sqlalchemy import create_engine
 
 from clinicalsupervisor.app import create_app
 from clinicalsupervisor.configure import MockDB
-from clinicalsupervisor.controllers import clean_rpis, move_files
+from clinicalsupervisor.controllers import clean_rpis, load_files_to_db, move_files
 from clinicalsupervisor.defaults import COMPLETE_ARTIFICIAL_DNS
+from clinicalsupervisor.db.schema import metadata
 
 CLEAN_USER = "cleaner"
+PSEUDO_ID = "0XXXRPI4000"
 SSH_OPTIONS = []
 TEST_RPI = "rpiX"
 TEST_RPI_IP = "10.10.10.10"
@@ -42,6 +46,24 @@ class MockApp(object):
         "URL_PATH": ""
     }
     logger = Mock()
+
+
+class TestLoadFilesToDB(object):
+    def setup(self):
+        self.test_db = 'testing.db'
+
+    def test_load_files_to_db(self):
+        engine = create_engine('sqlite:///{}'.format(self.test_db))
+        metadata.create_all(engine)
+        testing_file = join(dirname(__file__), "data/testing_data1.csv")
+        load_files_to_db(engine, 1000, [testing_file], PSEUDO_ID)
+        vent_bns = engine.execute("select distinct(vent_bn) from vwd;").fetchall()
+        all_rows = engine.execute("select * from vwd;").fetchall()
+        assert len(vent_bns) == 20
+        assert len(all_rows) == 3717
+
+    def teardown(self):
+        remove(self.test_db)
 
 
 class TestControllers(TestCase):
