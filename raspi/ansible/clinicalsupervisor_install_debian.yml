@@ -17,6 +17,5 @@
 
 - hosts: clinicalsupervisor
   roles:
-    - mivok0.users
     - rpi-backups
     - clinicalsupervisor

@@ -15,10 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-# XXX Remove
-from clinicalsupervisor.defaults import COMPLETE_ARTIFICIAL_DNS
-
-
 def find_home_dir_root(distribution):
     if distribution == "MacOSX":
         return "/Users"
@@ -31,9 +27,8 @@ def get_all_hostnames(rpi_ip_map):
     return ",".join(hostnames)
 
 
-# XXX Remove
-def get_rpi_ip_addr(rpi_name):
-    return COMPLETE_ARTIFICIAL_DNS[rpi_name]
+def get_rpi_ip_addr(rpi_name, hostname_map={}):
+    return hostname_map.get(rpi_name, rpi_name)
 
 
 def if_bash(users):
