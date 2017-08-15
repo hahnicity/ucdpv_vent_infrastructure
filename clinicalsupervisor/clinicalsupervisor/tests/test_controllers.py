@@ -56,7 +56,7 @@ class TestLoadFilesToDB(object):
         engine = create_engine('sqlite:///{}'.format(self.test_db))
         metadata.create_all(engine)
         testing_file = join(dirname(__file__), "data/testing_data1.csv")
-        load_files_to_db(engine, 1000, [testing_file], PSEUDO_ID)
+        load_files_to_db(MockApp(), engine, 1000, [testing_file], PSEUDO_ID)
         vent_bns = engine.execute("select distinct(vent_bn) from vwd;").fetchall()
         all_rows = engine.execute("select * from vwd;").fetchall()
         assert len(vent_bns) == 20

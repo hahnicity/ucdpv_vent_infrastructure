@@ -32,6 +32,15 @@ class MockDB(object):
     name = 'mock'
 
 
+def create_db(app):
+    db = create_engine(app.config['DB_URL'])
+    try:
+        metadata.create_all(db)
+    except OperationalError:
+        db = MockDB()
+    return db
+
+
 def configure_app(app, debug=False, testing=False):
     """
     Load configuration and initialize collaborators.
@@ -44,11 +53,7 @@ def configure_app(app, debug=False, testing=False):
     _configure_from_environment(app)
     _configure_logging(app)
 
-    db = create_engine(app.config['DB_URL'])
-    try:
-        metadata.create_all(db)
-    except OperationalError:
-        db = MockDB()
+    db = create_db(app)
     create_routes(app, db)
 
 

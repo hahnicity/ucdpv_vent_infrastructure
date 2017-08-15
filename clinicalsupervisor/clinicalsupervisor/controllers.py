@@ -24,6 +24,7 @@ import json
 from multiprocessing import Process
 import os
 from subprocess import PIPE, Popen
+import traceback
 
 from flask import jsonify, render_template, request
 
@@ -31,11 +32,17 @@ from clinicalsupervisor.db.csv_reader import extract_raw
 from clinicalsupervisor.db.dbops import raw_vwd_to_db
 
 
-def load_files_to_db(db, chunksize, files, patient):
+def load_files_to_db(app, db, chunksize, files, patient):
+    """
+    send collected and attributed vwd to a database
+    """
     if db.name != 'mock':
         for file in files:
-            gen = extract_raw(open(file, 'rU'), False)
-            raw_vwd_to_db(db, chunksize, gen, patient)
+            try:
+                gen = extract_raw(open(file, 'rU'), False)
+                raw_vwd_to_db(db, chunksize, gen, patient)
+            except Exception as err:
+                app.logger.error(traceback.format_exc())
 
 
 def clean_rpis(app, regular_ssh_options, name, files):
@@ -97,7 +104,7 @@ def move_files(app, db, name, files, pseudo_id):
         proc.communicate()
         if proc.returncode != 0:
             return stdout, stderr, proc.returncode
-    p = Process(target=load_files_to_db, args=(db, app.config['CHUNKSIZE'], final_paths, pseudo_id))
+    p = Process(target=load_files_to_db, args=(app, db, app.config['CHUNKSIZE'], final_paths, pseudo_id))
     p.start()
     return stdout, stderr, proc.returncode
 

@@ -3,3 +3,6 @@ flask>=0.10
 nose
 Flask-Testing
 mock
+pandas
+sqlalchemy
+MySQL-python
