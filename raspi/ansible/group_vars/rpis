@@ -1,5 +1,4 @@
 ---
-apt_mirror_ip: XXX --- insert host ip for apt mirror if you have one --- XXX
 users_create_per_user_group: True
 shutdown_rpis: false
 
@@ -12,28 +11,6 @@ ntp_server_ips:
 pi_user_password: XXX
 retriever_pub_key: XXX
 
-users:
-  - username: 'backup'
-    name: Backup User
-    groups: ["backup"]
-    uid: 1005
-    gid: 2003
-    ssh_key:
-      - command="rsync --server --sender -re.iLsf . /home/pi/Data/*",no-pty,no-X11-forwarding,no-agent-forwarding XXX --- insert SSH key here --- XXX
-    shell: /bin/sh
-  - username: 'cleaner'
-    name: Data Cleaner User
-    groups: ["cleaner", "pi"]
-    uid: 1006
-    gid: 2004
-    ssh_key:
-      - command="rm -f ${SSH_ORIGINAL_COMMAND#* }",no-pty,no-X11-forwarding,no-agent-forwarding XXX --- insert SSH key here --- XXX
-    shell: /bin/sh
-  - username: 'lister'
-    name: File Listing User
-    groups: []
-    uid: 1007
-    gid: 2005
-    ssh_key:
-      - command="ls /home/pi/Data",no-pty,no-X11-forwarding,no-agent-forwarding XXX --- insert SSH key here --- XXX
-    shell: /bin/sh
+backup_force_command: "rsync --server --sender -re.iLsf . /home/pi/Data/*",no-pty,no-X11-forwarding,no-agent-forwarding"
+cleaner_force_command: "rm -f ${SSH_ORIGINAL_COMMAND#* }",no-pty,no-X11-forwarding,no-agent-forwarding"
+lister_force_command: "ls /home/pi/Data",no-pty,no-X11-forwarding,no-agent-forwarding"

@@ -22,11 +22,13 @@
     - clinicalsupervisor
   notify:
     - start supervisor
+  when: {{ ansible_distribution == 'MacOSX' }}
 
 - name: ensure pip is locateable in /usr/local/sbin due to ansible bug
   file: src=/usr/local/bin dest=/usr/local/sbin state=link
   tags:
     - clinicalsupervisor
+  when: {{ ansible_distribution == 'MacOSX' }}
 
 - name: Install root python prereqs
   pip: name={{ item }}

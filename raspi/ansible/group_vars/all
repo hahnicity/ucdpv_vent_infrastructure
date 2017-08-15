@@ -1,3 +1,5 @@
 script_refresh_rate: 7200
 users_create_per_user_group: True
 vent_disconnect_tolerance: 10
+
+retriever_pub_key: XXX

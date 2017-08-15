@@ -18,14 +18,14 @@
   user: name=retriever shell=/bin/sh
 
 - name: Create clinicalsupervisor dir
-  file: path=/Applications/clinicalsupervisor state=directory
+  file: path={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor state=directory
   tags:
     - clinicalsupervisor
 
 # Doing it this way because machine will not have access to net
 # XXX Eventually we should have a configurable version
 - name: copy clinicalsupervisor source dist
-  copy: src=clinicalsupervisor/dist/clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz dest=/Applications/clinicalsupervisor
+  copy: src=clinicalsupervisor/dist/clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz dest={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor
   tags:
     - clinicalsupervisor
   notify:
@@ -34,17 +34,17 @@
 # Once again don't expect this to work. Just want to formalize steps so we
 # know what to do manually if need be
 - name: setup virtualenv
-  command: /usr/local/bin/virtualenv venv chdir=/Applications/clinicalsupervisor
+  command: /usr/local/bin/virtualenv venv chdir={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor
   tags:
     - clinicalsupervisor
 
 - name: install clinicalsupervisor
-  command: ./venv/bin/pip install --upgrade clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz chdir=/Applications/clinicalsupervisor
+  command: ./venv/bin/pip install --upgrade clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz chdir={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor
   tags:
     - clinicalsupervisor
 
 - name: retriever should own clinicalsupervisor
-  file: path=/Applications/clinicalsupervisor owner=retriever recurse=yes
+  file: path={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor owner=retriever recurse=yes
   tags:
     - clinicalsupervisor
   notify:
@@ -93,7 +93,7 @@
   cron:
     name="backup data files onto server for {{ item }}"
     minute={{ item|set_backup_crontab_minute }}
-    job="/opt/local/bin/rsync -re 'ssh {{ rsync_ssh_options }}' backup@{{ item|get_rpi_ip_addr(hostnames=static_dns) }}:/home/pi/Data/* {{ ansible_distribution|find_home_dir_root }}/retriever/Data/{{ item }}"
+    job="/opt/local/bin/rsync -re 'ssh {{ rsync_ssh_options }}' backup@{{ item|get_rpi_ip_addr(hostname_map=static_dns) }}:/home/pi/Data/* {{ ansible_distribution|find_home_dir_root }}/retriever/Data/{{ item }}"
     user=retriever
   with_items: groups['rpis']
   sudo: yes

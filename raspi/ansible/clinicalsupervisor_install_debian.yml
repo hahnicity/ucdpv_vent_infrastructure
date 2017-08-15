@@ -17,5 +17,4 @@
 
 - hosts: clinicalsupervisor
   roles:
-    - rpi-backups
     - clinicalsupervisor

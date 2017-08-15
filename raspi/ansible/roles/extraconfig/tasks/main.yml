@@ -13,6 +13,34 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+- name: setup backup user
+  user: name=backup shell=/bin/false
+
+- name: setup backup ssh dir
+  file: path=/home/backup/.ssh state=directory
+
+- name: setup cleaner user
+  user: name=cleaner shell=/bin/false
+
+- name: setup cleaner ssh dir
+  file: path=/home/cleaner/.ssh state=directory
+
+- name: setup lister user
+  user: name=lister shell=/bin/false
+
+- name: setup lister ssh dir
+  file: path=/home/lister/.ssh state=directory
+
+- name: setup backup ssh auth keys
+  template: src=backup_auth_keys.j2 dest=/home/backup/.ssh/authorized_keys
+
+- name: setup cleaner ssh auth keys
+  template: src=cleaner_auth_keys.j2 dest=/home/cleaner/.ssh/authorized_keys
+
+- name: setup lister ssh auth keys
+  template: src=lister_auth_keys.j2 dest=/home/lister/.ssh/authorized_keys
+
 - name: setup /etc/hostname
   hostname: name={{ inventory_hostname }}
   when: change_hostnames
@@ -30,11 +58,6 @@
   tags:
     - configuration
 
-- name: Setup lightdm settings
-  copy: src=lightdm.conf dest=/etc/lightdm/ mode=0644
-  tags:
-    - configuration
-
 - name: setup ntp config
   template: src=ntp.conf dest=/etc/ntp.conf mode=0644
   notify:
@@ -42,8 +65,3 @@
   tags:
     - configuration
     - ntp
-
-- name: Add our own apt-mirror
-  template: src=apt-mirror dest=/etc/apt/sources.list.d/b2c-apt-mirror.list
-  tags:
-    - apt_mirror

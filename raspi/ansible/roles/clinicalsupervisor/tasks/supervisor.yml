@@ -31,6 +31,9 @@
     - clinicalsupervisor
   notify:
     - load launchd file
+  when: {{ ansible_distribution == 'MacOSX' }}
+
+# XXX needs a task for linux
 
 - name: Setup clinicalsupervisor supervisord config
   copy: src=clinicalsupervisor-supervisor.conf dest=/etc/supervisor/conf.d/clinicalsupervisor.conf
