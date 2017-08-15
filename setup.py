@@ -5,7 +5,7 @@ __version__ = "1.0"
 
 setup(
     name="ucdpv",
-    author="Monica Lieng, Edward Guo, Gregory Rehm",
+    author="Edward Guo, Gregory Rehm",
     version=__version__,
     description="UCD Pulminary Ventilator Project",
     packages=find_packages(),
@@ -18,6 +18,7 @@ setup(
         "netifaces",
         "nose",
         "pyserial",
+        "sqlalchemy",
     ],
     entry_points={
     }
