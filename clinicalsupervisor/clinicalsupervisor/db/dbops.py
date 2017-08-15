@@ -23,6 +23,7 @@ def raw_vwd_to_db(db, chunksize, vwd_gen, pseudo_id):
     pressure = []
     patient = []
     abs_bs = []
+    vent_bn = []
     for breath in vwd_gen:
         if len(breath['ts']) == 0:
             raise Exception('There is no absolute bs time!')
@@ -31,6 +32,7 @@ def raw_vwd_to_db(db, chunksize, vwd_gen, pseudo_id):
         pressure.extend(breath['pressure'])
         patient.extend([pseudo_id] * len(breath['flow']))
         abs_bs.extend([abs] * len(breath['flow']))
-    df = pd.DataFrame([flow, pressure, patient, abs_bs]).transpose()
-    df.columns = ['flow', 'pressure', 'patient', 'abs_bs']
+        vent_bn.extend([breath['vent_bn']] * len(breath['flow']))
+    df = pd.DataFrame([flow, pressure, patient, abs_bs, vent_bn]).transpose()
+    df.columns = ['flow', 'pressure', 'patient', 'abs_bs', 'vent_bn']
     df.to_sql("vwd", db, index=False, chunksize=chunksize, if_exists="append")

@@ -17,11 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from os.path import join
 
-from flask.ext.testing import TestCase
+from flask_testing import TestCase
 from mock import Mock, patch
 from nose.tools import eq_
 
 from clinicalsupervisor.app import create_app
+from clinicalsupervisor.configure import MockDB
 from clinicalsupervisor.controllers import clean_rpis, move_files
 from clinicalsupervisor.defaults import COMPLETE_ARTIFICIAL_DNS
 
@@ -33,10 +34,12 @@ TEST_RPI_IP = "10.10.10.10"
 
 class MockApp(object):
     config = {
+        "CHUNKSIZE": 1000,
         "CLEAN_USER": CLEAN_USER,
         "COMPLETE_ARTIFICIAL_DNS": {TEST_RPI: TEST_RPI_IP},
         "LOCAL_BACKUP_DIR": "/bar/baz",
         "FINAL_PATIENT_DIR": "/bar",
+        "URL_PATH": ""
     }
     logger = Mock()
 
@@ -48,6 +51,9 @@ class TestControllers(TestCase):
         for option in self.app.config["SSH_OPTIONS"]:
             self.regular_ssh_options.append("-o")
             self.regular_ssh_options.append(option)
+        self.app.config['COMPLETE_ARTIFICIAL_DNS'] = {
+            TEST_RPI: TEST_RPI_IP
+        }
         return self.app
 
     def test_move_files(self):
@@ -58,7 +64,7 @@ class TestControllers(TestCase):
             mock_name = "rpi-mock"
             mock_pseudo_id = "11111"
             files = ["foo", "bar"]
-            move_files(mock_app, mock_name, files, mock_pseudo_id)
+            move_files(mock_app, MockDB(), mock_name, files, mock_pseudo_id)
             eq_(mock_popen.call_args_list[-2][0][0],
                 ['mv', '/bar/baz/rpi-mock/foo', join(mock_app.config["FINAL_PATIENT_DIR"], '11111/11111-foo')])
             eq_(mock_popen.call_args_list[-1][0][0],
@@ -68,10 +74,10 @@ class TestControllers(TestCase):
         with patch("clinicalsupervisor.controllers.Popen") as mock_popen:
             mock_popen().communicate.return_value = ('foo\nbar', '')  # Stands for success
             mock_popen().returncode = 0
-            expected_clean_cmd = self.regular_ssh_options + ["lister@10.190.16.91"]
-            response = self.client.get("/listfiles/rpi32/")
+            expected_clean_cmd = self.regular_ssh_options + ["lister@{}".format(TEST_RPI_IP)]
+            response = self.client.get("/listfiles/{}/".format(TEST_RPI))
             eq_(mock_popen.call_args_list[-1][0][0], expected_clean_cmd)
-            eq_(response.json, {"name": "rpi32", "files": ["foo", "bar"]})
+            eq_(response.json, {"name": TEST_RPI, "files": ["foo", "bar"]})
 
     def test_clean_rpis(self):
         with patch("clinicalsupervisor.controllers.Popen") as mock_popen:

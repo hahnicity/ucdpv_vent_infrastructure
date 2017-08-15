@@ -20,8 +20,16 @@ Configure the Flask application.
 """
 from logging.config import dictConfig
 
+from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
+
 from clinicalsupervisor import defaults
 from clinicalsupervisor.controllers import create_routes
+from clinicalsupervisor.db.schema import metadata
+
+
+class MockDB(object):
+    name = 'mock'
 
 
 def configure_app(app, debug=False, testing=False):
@@ -36,7 +44,12 @@ def configure_app(app, debug=False, testing=False):
     _configure_from_environment(app)
     _configure_logging(app)
 
-    create_routes(app)
+    db = create_engine(app.config['DB_URL'])
+    try:
+        metadata.create_all(db)
+    except OperationalError:
+        db = MockDB()
+    create_routes(app, db)
 
 
 def _configure_from_defaults(app):

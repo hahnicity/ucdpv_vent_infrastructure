@@ -26,14 +26,45 @@ from operator import xor
 from StringIO import StringIO
 import sys
 
-import numpy as np
-
-from algorithms.detection import detect_version_v2
-from preprocessing.clear_null_bytes import clear_descriptor_null_bytes
 
 csv.field_size_limit(sys.maxsize)
 EMPTY_FLOAT_DELIMITER = -1000.0
 EMPTY_DATE_DELIMITER = "2222-12-12 12:12:12.12"
+
+def clear_descriptor_null_bytes(descriptor):
+    descriptor_text = descriptor.read()
+    stringio = StringIO()
+    stringio.write(descriptor_text.replace("\x00", ""))
+    stringio.seek(0)
+    return stringio
+
+
+def detect_csv_version(first):
+    """
+    Detect timestamp, number columns, and whether there is a timestamp on
+    first row and/or timestamp on first col
+    """
+    first = first.strip(',\r\n')
+    if len(first.split(','))==3 or len(first.split('-'))==3:
+        timestamp_1st_col = True
+        timestamp_1st_row = False
+        bs_col = 1
+        ncol = 3
+
+    #detect 3rd type, with date time in first row
+    elif len(first.split('-'))==6:
+        timestamp_1st_col = False
+        timestamp_1st_row = True
+        bs_col = 0
+        ncol = 2
+
+    #detect 1st type, 2 col  #BS, S:52335,\n (by default)
+    else:
+        timestamp_1st_col = False
+        timestamp_1st_row = False
+        bs_col = 0
+        ncol = 2
+    return  bs_col, ncol, timestamp_1st_col, timestamp_1st_row
 
 
 def filter_arrays(flow, pressure, t_array, timestamp_array):
@@ -143,7 +174,7 @@ def extract_raw(descriptor,
     vent_bn_regex = re.compile("S:(\d+)")
     descriptor.seek(0)
     first_line = descriptor.readline()
-    bs_col, ncol, ts_1st_col, ts_1st_row = detect_version_v2(first_line)
+    bs_col, ncol, ts_1st_col, ts_1st_row = detect_csv_version(first_line)
     if ts_1st_row:
         abs_time = datetime.strptime(first_line.strip('\r\n'), "%Y-%m-%d-%H-%M-%S.%f")
     descriptor.seek(0)

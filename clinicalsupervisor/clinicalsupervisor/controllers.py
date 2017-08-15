@@ -21,10 +21,21 @@ URL mappings for package index functionality.
 The error codes here are pretty rough grained but they'll be fine for now
 """
 import json
+from multiprocessing import Process
 import os
 from subprocess import PIPE, Popen
 
 from flask import jsonify, render_template, request
+
+from clinicalsupervisor.db.csv_reader import extract_raw
+from clinicalsupervisor.db.dbops import raw_vwd_to_db
+
+
+def load_files_to_db(db, chunksize, files, patient):
+    if db.name != 'mock':
+        for file in files:
+            gen = extract_raw(open(file, 'rU'), False)
+            raw_vwd_to_db(db, chunksize, gen, patient)
 
 
 def clean_rpis(app, regular_ssh_options, name, files):
@@ -61,7 +72,7 @@ def make_initial_move_file_paths(app, name, basenames):
     return files
 
 
-def move_files(app, name, files, pseudo_id):
+def move_files(app, db, name, files, pseudo_id):
     """
     Once patient rpi files are backed up move them to their appropriate
     resting directory location. The will be a determinant of the rpi name
@@ -76,21 +87,23 @@ def move_files(app, name, files, pseudo_id):
     if proc.returncode != 0:
         return stdout, stderr, proc.returncode
     initial_paths = make_initial_move_file_paths(app, name, files)
+    final_paths = []
     for path in initial_paths:
-        move_file_cmd = \
-            ["mv"] + \
-            [path] + \
-            [os.path.join(resting_dir, "{}-{}".format(pseudo_id, os.path.basename(path)))]
+        final_path = os.path.join(resting_dir, "{}-{}".format(pseudo_id, os.path.basename(path)))
+        move_file_cmd = ["mv", path, final_path]
+        final_paths.append(final_path)
         app.logger.debug("Move files to resting dir with cmd {}".format(move_file_cmd))
         proc = Popen(move_file_cmd, stderr=PIPE, stdout=PIPE)
         proc.communicate()
         if proc.returncode != 0:
             return stdout, stderr, proc.returncode
+    p = Process(target=load_files_to_db, args=(db, app.config['CHUNKSIZE'], final_paths, pseudo_id))
+    p.start()
     return stdout, stderr, proc.returncode
 
 
 # XXX TODO Later, all API methods need authentication
-def create_routes(app):
+def create_routes(app, db):
 
     rsync_ssh_options = "ssh -o {}".format(" -o ".join(app.config["SSH_OPTIONS"]))
     regular_ssh_options = ["ssh"]
@@ -198,7 +211,7 @@ def create_routes(app):
         basenames = request.form.listvalues()[1]
         if not basenames:
             return "You must select files to attach to a patient!", 400
-        stdout, stderr, rc = move_files(app, name, basenames, pseudo_id)
+        stdout, stderr, rc = move_files(app, db, name, basenames, pseudo_id)
         if rc != 0:
             return "Unable to properly move backed up files to pseudo id dir {}".format(stderr), 500
         files = make_clean_files_paths(basenames)
