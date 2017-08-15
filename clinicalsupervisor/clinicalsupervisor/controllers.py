@@ -52,7 +52,7 @@ def clean_rpis(app, regular_ssh_options, name, files):
     try:
         ip = app.config["COMPLETE_ARTIFICIAL_DNS"][name]
     except KeyError:
-        return "{} is not in the list of rpis!".format(name), "", 1
+        ip = name
 
     batch = files[:1000]
     idx = 1
