@@ -40,6 +40,7 @@ RANDOM_DELAY_PARAM = 300
 SYNC_TIMEOUT = 5
 ENV_TYPE = "prod"
 GET_SERIAL_FAILURE_WAIT = 60
+NETWORKING_RESTART_WAIT = 10
 
 
 def get_process(args):
@@ -106,10 +107,7 @@ def perform_ntp_sync():
         else:
             process = get_process(["sudo", "service", "networking", "restart"])
             perform_command_and_validate(process, "networking service restart failed")
-            process = get_process(["sudo", "ifdown", "wlan0"])
-            perform_command_and_validate(process, "Could not take wlan0 down")
-            process = get_process(["sudo", "ifup", "wlan0"])
-            perform_command_and_validate(process, "Could not bring wlan0 up")
+            time.sleep(NETWORKING_RESTART_WAIT)
 
     logging.info("Starting ntp sync process. Cycling ntp off/on")
     process = get_process(["sudo", "service", "ntp", "stop"])

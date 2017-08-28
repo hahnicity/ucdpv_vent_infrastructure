@@ -32,6 +32,46 @@
     - scripts
     - gwf
 
+- name: extract setuptools
+  unarchive:
+    src: setuptools-36.3.0.zip
+    dest: /home/pi/
+  tags:
+    - scripts
+    - gwf
+
+- name: install setuptools
+  shell: "python setup.py install"
+  args:
+    chdir: /home/pi/setuptools-36.3.0/
+  tags:
+    - scripts
+    - gwf
+
+- name: copy pip to machine
+  copy: src=pip-9.0.1.tar.gz dest=/home/pi
+  tags:
+    - scripts
+    - gwf
+
+- name: install pip
+  easy_install: name=/home/pi/pip-9.0.1.tar.gz
+  tags:
+    - scripts
+    - gwf
+
+- name: copy pyserial to machine
+  copy: src=pyserial-3.4-py2.py3-none-any.whl dest=/home/pi
+  tags:
+    - scripts
+    - gwf
+
+- name: install pyserial
+  pip: name=file:///home/pi/pyserial-3.4-py2.py3-none-any.whl
+  tags:
+    - scripts
+    - gwf
+
 - name: ensure we rotate logs
   copy: src=logrotate dest=/etc/logrotate.d/gwf
   tags:
