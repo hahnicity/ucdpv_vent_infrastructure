@@ -27,13 +27,7 @@ import datetime
 from mock import Mock, patch
 from nose.tools import assert_raises, eq_
 
-from scripts.gwf import (
-    check_if_synced,
-    check_if_wifi_available,
-    execute_get_serial,
-    main,
-    perform_command_and_validate
-)
+from raspi.scripts import gwf
 
 
 class MockProcess(object):
@@ -50,7 +44,7 @@ def test_perform_command_and_validate_on_success():
     stdout = "foo"
     stderr = ""
     proc = MockProcess(stdout, stderr, 0)
-    out, err = perform_command_and_validate(proc, "Shouldn't happen")
+    out, err = gwf.perform_command_and_validate(proc, "Shouldn't happen")
     eq_(out, stdout)
     eq_(err, stderr)
 
@@ -59,34 +53,39 @@ def test_perform_command_and_validate_on_error():
     stdout = "foo"
     stderr = "bar"
     proc = MockProcess(stdout, stderr, 1)
-    assert_raises(Exception, perform_command_and_validate, proc, "blah")
+    assert_raises(Exception, gwf.perform_command_and_validate, proc, "blah")
 
 
 def test_main_integration_get_serial():
     """
     Integration testing for gwf with get_serial
     """
-    with patch("scripts.gwf.perform_ntp_sync") as sync:
-        with patch("scripts.gwf.logging") as logging:
-            with patch("scripts.gwf.get_serial") as get_serial:
+    with patch("raspi.scripts.gwf.perform_ntp_sync") as sync:
+        with patch("raspi.scripts.gwf.logging") as logging:
+            with patch("raspi.scripts.gwf.get_serial") as get_serial:
                 try:
-                    execute_get_serial("testing")
+                    gwf.execute_get_serial("testing")
                 except StopIteration:
                     pass
                 get_serial.get_serial.assert_called_once_with("testing")
 
 
 def test_error_case_in_ntp_sync():
-    with patch("scripts.gwf.perform_ntp_sync") as sync:
-        with patch("scripts.gwf.logging") as logging:
-            sync.side_effect = ValueError("foobar!")
-            main()
-            expected = "ValueError: foobar!"
-            assert expected in logging.error.call_args_list[0][0][0]
+    with patch("raspi.scripts.gwf.perform_ntp_sync") as sync:
+        with patch("raspi.scripts.gwf.logging") as logging:
+            with patch("raspi.scripts.gwf.GET_SERIAL_FAILURE_WAIT") as wait:
+                wait = .01
+                sync.side_effect = ValueError("foobar!")
+                try:
+                    gwf.execute_get_serial("testing")
+                except StopIteration:
+                    pass
+                expected = "ValueError: foobar!"
+                assert expected in logging.warn.call_args_list[0][0][0]
 
 
 def test_check_if_synced_pos_offset():
-    with patch("scripts.gwf.perform_command_and_validate") as perf:
+    with patch("raspi.scripts.gwf.perform_command_and_validate") as perf:
         response = """
      remote           refid      st t when poll reach   delay   offset  jitter
 ==============================================================================
@@ -94,12 +93,12 @@ def test_check_if_synced_pos_offset():
 *152.79.105.132  173.71.69.90     2 u    1   64    1    1.310   -1.878   1.633
         """
         perf.return_value = (response, "")
-        is_synced = check_if_synced()
+        is_synced = gwf.check_if_synced()
         assert is_synced
 
 
 def test_check_if_synced_weird_match_line():
-    with patch("scripts.gwf.perform_command_and_validate") as perf:
+    with patch("raspi.scripts.gwf.perform_command_and_validate") as perf:
         response = """
      remote           refid      st t when poll reach   delay   offset  jitter
 ==============================================================================
@@ -107,12 +106,12 @@ def test_check_if_synced_weird_match_line():
 *152.79.105.132  173.71.69.90
         """
         perf.return_value = (response, "")
-        is_synced = check_if_synced()
+        is_synced = gwf.check_if_synced()
         assert not is_synced
 
 
 def test_check_if_synced_neg_offset():
-    with patch("scripts.gwf.perform_command_and_validate") as perf:
+    with patch("raspi.scripts.gwf.perform_command_and_validate") as perf:
         response = """
      remote           refid      st t when poll reach   delay   offset  jitter
 ==============================================================================
@@ -120,13 +119,13 @@ def test_check_if_synced_neg_offset():
  152.79.105.132  173.71.69.90     2 u    1   64    1    1.294   -2.128   0.001
         """
         perf.return_value = (response, "")
-        is_synced = check_if_synced()
+        is_synced = gwf.check_if_synced()
         assert is_synced
 
 
 def test_check_if_wifi_available_up_state():
-    with patch("scripts.gwf.perform_command_and_validate") as perf:
-        with patch("scripts.gwf.get_process"):
+    with patch("raspi.scripts.gwf.perform_command_and_validate") as perf:
+        with patch("raspi.scripts.gwf.get_process"):
             response = """
     3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
         link/ether 00:0f:60:08:07:7c brd ff:ff:ff:ff:ff:ff
@@ -136,28 +135,28 @@ def test_check_if_wifi_available_up_state():
            valid_lft forever preferred_lft forever
             """
             perf.return_value = (response, "")
-            is_up = check_if_wifi_available()
+            is_up = gwf.check_if_wifi_available()
             assert is_up
 
 
 def test_check_if_wifi_available_down_error_state():
-    with patch("scripts.gwf.perform_command_and_validate") as perf:
-        with patch("scripts.gwf.get_process"):
+    with patch("raspi.scripts.gwf.perform_command_and_validate") as perf:
+        with patch("raspi.scripts.gwf.get_process"):
             response = """
     3: wlan0: <BROADCAST,MULTICAST> mtu qdisc state group qlen
         link/ether 00:0f:60:08:07:7c brd ff:ff:ff:ff:ff:ff
             """
             perf.return_value = (response, "")
-            is_up = check_if_wifi_available()
+            is_up = gwf.check_if_wifi_available()
             assert not is_up
 
 def test_check_if_wifi_available_down_state():
-    with patch("scripts.gwf.perform_command_and_validate") as perf:
-        with patch("scripts.gwf.get_process"):
+    with patch("raspi.scripts.gwf.perform_command_and_validate") as perf:
+        with patch("raspi.scripts.gwf.get_process"):
             response = """
     3: wlan0: <BROADCAST,MULTICAST> mtu 1500 qdisc mq state DOWN group default qlen 1000
         link/ether 00:0f:60:08:07:7c brd ff:ff:ff:ff:ff:ff
             """
             perf.return_value = (response, "")
-            is_up = check_if_wifi_available()
+            is_up = gwf.check_if_wifi_available()
             assert not is_up
