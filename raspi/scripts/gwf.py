@@ -131,9 +131,13 @@ def execute_get_serial(env_type):
     continuation_func = mapping[env_type]
     while continuation_func.next():
         try:
+            error_loc = 'gwf'
+            perform_ntp_sync()
+            logging.info("Time is synced. Starting get_serial script")
+            error_loc = 'get_serial'
             get_serial.get_serial(env_type)
         except Exception as err:
-            logging.warn("Error in get_serial: {}".format(traceback.format_exc()))
+            logging.warn("Error in {}: {}".format(error_loc, traceback.format_exc()))
             time.sleep(GET_SERIAL_FAILURE_WAIT)
 
 
@@ -145,8 +149,6 @@ def main():
     )
     logging.info("Starting gwf")
     try:
-        perform_ntp_sync()
-        logging.info("Time is synced. Starting get_serial script")
         execute_get_serial(ENV_TYPE)
     except:
         logging.error(traceback.format_exc())

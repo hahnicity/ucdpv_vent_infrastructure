@@ -3,6 +3,7 @@ b2c-main
 
 [rpis]
 rpi[1:10]
+rpi[40:60]
 
 [rpis:vars]
 change_hostnames=true

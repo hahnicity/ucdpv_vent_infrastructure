@@ -17,24 +17,8 @@
 - name: setup sshd_config
   copy: src=sshd_config dest=/etc/ssh/
 
-- name: setup users vimrc
-  copy:
-    src=vimrc
-    dest=/home/{{ item.username }}/.vimrc
-    owner={{ item.username }}
-  tags: ['users', 'configuration']
-  with_items: users|if_bash
-
-- name: setup users bashrc
-  copy:
-    src=bashrc
-    dest=/home/{{ item.username }}/.bashrc
-    owner={{ item.username }}
-  tags: ['users', 'configuration']
-  with_items: users|if_bash
-
-- name: Set timezone to PST
-  copy: src=timezone dest=/etc/timezone
+- name: Set timezone
+  template: src=timezone dest=/etc/timezone
   notify:
     - update timezone
   tags:
@@ -49,8 +33,26 @@
 - name: setup sudoers file
   copy: src=sudoers dest=/etc/sudoers mode=0440
   tags:
-    - config
+    - configuration
     - sudoers
+
+- name: Set up network interfaces
+  copy: src=interfaces dest=/etc/network/interfaces mode=0600
+  tags:
+    - configuration
+
+- name: Setup wpa_supplicant.conf
+  template: src=wpa_supplicant.conf dest=/etc/wpa_supplicant/ mode=0600
+  tags:
+    - configuration
+
+- name: setup ntp config
+  template: src=ntp.conf dest=/etc/ntp.conf mode=0644
+  notify:
+    - restart ntp
+  tags:
+    - configuration
+    - ntp
 
 - name: Ensure Data dir present
   file: dest=/home/pi/Data state=directory mode=0775 owner=pi group=pi
