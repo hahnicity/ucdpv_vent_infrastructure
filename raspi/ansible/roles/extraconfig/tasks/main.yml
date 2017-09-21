@@ -47,3 +47,16 @@
   tags:
     - configuration
     - hostname
+
+- name: copy rsync package
+  copy: src=rsync_3.1.1-3_armhf.deb dest=/var/tmp
+  tags:
+    - configuration
+    - rsync
+
+- name: install rsync
+  apt:
+    deb: /var/tmp/rsync_3.1.1-3_armhf.deb
+  tags:
+    - configuration
+    - rsync
