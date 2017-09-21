@@ -69,10 +69,14 @@ def main():
             "LAN!"
         )
 
-    lan_type = "prod"
+    lan_type = "preprovision"
     disable_known_hosts()
     ips = get_rpi_ips(provisioner_lan_ips)
     print json.dumps({
+        lan_type: {
+            "children": ["rpis"],
+            "vars": {"change_hostnames": False},
+        },
         "rpis": ips,
     })
 
