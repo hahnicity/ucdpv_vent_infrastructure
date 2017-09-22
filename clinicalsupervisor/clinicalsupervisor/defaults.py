@@ -37,6 +37,7 @@ DB_URL = "mysql://root:root@localhost/vwd"
 FINAL_PATIENT_DIR = "/home/retriever"
 LISTER_USER = "lister"
 LOCAL_BACKUP_DIR = join(FINAL_PATIENT_DIR, "Data")
+RAISE_ERROR_IF_NO_MYSQL_CONN = False
 RSYNC_PATH = "/opt/local/bin/rsync"
 SSH_OPTIONS = [
     "StrictHostKeyChecking=no",

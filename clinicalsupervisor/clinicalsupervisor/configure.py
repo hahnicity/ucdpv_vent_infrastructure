@@ -36,8 +36,13 @@ def create_db(app):
     db = create_engine(app.config['DB_URL'])
     try:
         metadata.create_all(db)
-    except OperationalError:
-        db = MockDB()
+        app.logger.info("Connected to database")
+    except OperationalError as err:
+        if app.config['RAISE_ERROR_IF_NO_MYSQL_CONN']:
+            app.logger.error("Unable to connect to database!")
+            raise err
+        else:
+            db = MockDB()
     return db
 
 

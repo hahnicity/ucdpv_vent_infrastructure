@@ -43,7 +43,8 @@ class MockApp(object):
         "COMPLETE_ARTIFICIAL_DNS": {TEST_RPI: TEST_RPI_IP},
         "LOCAL_BACKUP_DIR": "/bar/baz",
         "FINAL_PATIENT_DIR": "/bar",
-        "URL_PATH": ""
+        "URL_PATH": "",
+        "RAISE_ERROR_IF_NO_MYSQL_CONN": False,
     }
     logger = Mock()
 

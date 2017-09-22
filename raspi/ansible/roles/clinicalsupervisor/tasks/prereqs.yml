@@ -39,6 +39,28 @@
   notify:
     - start supervisor OSX
 
+- name: Specify MySQL root password before installing
+  debconf:
+    name='mysql-server'
+    question='mysql-server/root_password'
+    value='{{ database_root_password | quote }}'
+    vtype='password'
+  when: ansible_os_family == 'Debian'
+  tags:
+    - clinicalsupervisor
+  no_log: true
+
+- name: Confirm MySQL root password before installing
+  debconf:
+    name='mysql-server'
+    question='mysql-server/root_password_again'
+    value='{{ database_root_password | quote }}'
+    vtype='password'
+  when: ansible_os_family == 'Debian'
+  tags:
+    - clinicalsupervisor
+  no_log: true
+
 - name: Install apt prerequisites
   apt:
     name={{ item }}

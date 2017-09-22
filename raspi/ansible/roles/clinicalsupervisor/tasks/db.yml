@@ -15,16 +15,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ---
-
 - name: Set database
   mysql_db:
-    login_user={{ database_login_username }}
-    login_password={{ database_login_password }}
+    login_user=root
+    login_password={{ database_root_password }}
     name={{ database_name }}
     state=present
   tags:
     - mysql
 
 - name: Create database user
-  shell: mysql -u{{ database_login_username }} -p{{ database_login_password }} -e "grant all privileges on {{ database_name }}.* to {{ database_username }}@'{{ database_host }}' identified by '{{ database_password }}';"
+  shell: mysql -uroot -p{{ database_root_password }} -e "grant all privileges on {{ database_name }}.* to {{ database_username }}@'{{ database_host }}' identified by '{{ database_password }}';"
   no_log: true
