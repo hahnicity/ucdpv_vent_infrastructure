@@ -24,6 +24,7 @@
   copy: dest=/etc/supervisor/ src=supervisord.conf
   tags:
     - clinicalsupervisor
+  when: ansible_distribution == 'MacOSX'
 
 - name: setup launchd config file
   copy: dest="/Library/LaunchDaemons/com.b2c.supervisord.plist" src=launchd-supervisor.conf
@@ -31,12 +32,12 @@
     - clinicalsupervisor
   notify:
     - load launchd file
-  when: {{ ansible_distribution == 'MacOSX' }}
+  when: ansible_distribution == 'MacOSX'
 
 # XXX needs a task for linux
 
 - name: Setup clinicalsupervisor supervisord config
-  copy: src=clinicalsupervisor-supervisor.conf dest=/etc/supervisor/conf.d/clinicalsupervisor.conf
+  template: src=clinicalsupervisor-supervisor.conf dest=/etc/supervisor/conf.d/clinicalsupervisor.conf
   tags:
     - clinicalsupervisor
   notify:

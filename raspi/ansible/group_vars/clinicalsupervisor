@@ -1,11 +1,13 @@
 ---
-clinicalsupervisor_version: "0.5.2"
+clinicalsupervisor_version: "1.0"
 clinicalsupervisor_read_timeout: 3600
-database_name: mysql
+database_software: mysql
 database_host: localhost
 database_username: root
 database_password: root
 database_name: vwd
+database_login_username: root
+database_login_password: root
 
 rsync_ssh_options: "-o StrictHostKeyChecking=no -o Compression=yes -o ConnectTimeout=5"
 

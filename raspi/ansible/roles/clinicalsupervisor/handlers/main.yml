@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ---
 
-- name: start supervisor
+- name: start supervisor OSX
   command: /usr/local/bin/supervisord -c /etc/supervisor/supervisord.conf
   tags:
     - clinicalsupervisor
@@ -26,8 +26,11 @@
 - name: restart clinicalsupervisor
   supervisorctl: name=clinicalsupervisor state=restarted config=/etc/supervisor/supervisord.conf
 
-- name: restart clinicalsupervisor nginx
+- name: restart clinicalsupervisor nginx OSX
   command: /usr/local/bin/nginx -s reload
+
+- name: restart clinicalsupervisor nginx debian
+  service: name=nginx state=restarted
 
 - name: load launchd file
   command: 'launchctl load -w /Library/LaunchDaemons/com.b2c.supervisord.plist'

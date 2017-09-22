@@ -22,17 +22,15 @@
   tags:
     - clinicalsupervisor
 
-# Doing it this way because machine will not have access to net
-# XXX Eventually we should have a configurable version
 - name: copy clinicalsupervisor source dist
-  copy: src=clinicalsupervisor/dist/clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz dest={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor
+  copy:
+    src=clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz
+    dest={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor
   tags:
     - clinicalsupervisor
   notify:
     - restart clinicalsupervisor
 
-# Once again don't expect this to work. Just want to formalize steps so we
-# know what to do manually if need be
 - name: setup virtualenv
   command: /usr/local/bin/virtualenv venv chdir={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor
   tags:
@@ -61,14 +59,14 @@
     - clinicalsupervisor
 
 - name: Setup app config
-  copy: src=clinicalsupervisor-app.conf dest=/etc/clinicalsupervisor/clinicalsupervisor.conf
+  template: src=clinicalsupervisor-app.conf dest=/etc/clinicalsupervisor/clinicalsupervisor.conf
   tags:
     - clinicalsupervisor
   notify:
     - restart clinicalsupervisor
 
 - name: Setup uwsgi config
-  copy: src=uwsgi.ini dest=/etc/clinicalsupervisor
+  template: src=uwsgi.ini dest=/etc/clinicalsupervisor
   tags:
     - clinicalsupervisor
   notify:
@@ -76,6 +74,7 @@
 
 - name: Install latest rsync
   macports: name=rsync
+  when: ansible_distribution == 'MacOSX'
   tags:
     - backups
 

@@ -15,11 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-"""
-URL mappings for package index functionality.
-
-The error codes here are pretty rough grained but they'll be fine for now
-"""
 import json
 from multiprocessing import Process
 import os
@@ -34,7 +29,7 @@ from clinicalsupervisor.db.dbops import raw_vwd_to_db
 
 def load_files_to_db(app, db, chunksize, files, patient):
     """
-    send collected and attributed vwd to a database
+    Send collected and attributed vwd to a database
     """
     if db.name != 'mock':
         for file in files:
@@ -109,7 +104,6 @@ def move_files(app, db, name, files, pseudo_id):
     return stdout, stderr, proc.returncode
 
 
-# XXX TODO Later, all API methods need authentication
 def create_routes(app, db):
 
     rsync_ssh_options = "ssh -o {}".format(" -o ".join(app.config["SSH_OPTIONS"]))
@@ -134,33 +128,47 @@ def create_routes(app, db):
 
     @app.route("{}/backups/".format(app.config["URL_PATH"]))
     def backups():
+        """
+        Backups page: this is where we go to backup raspberry pi's
+        """
         app.logger.debug("Showing backups page")
         return render_template("backups.html", api_name="backup", url_path=app.config["URL_PATH"])
 
     @app.route("{}/cleanall/".format(app.config["URL_PATH"]))
     def clean():
+        """
+        Clean page: Remove all data for raspberry pi's here
+        """
         app.logger.debug("Showing clean all files rpi page")
         return render_template("cleanall.html", api_name="cleanall", url_path=app.config["URL_PATH"])
 
     @app.route("{}/enroll/".format(app.config["URL_PATH"]))
     def enroll():
+        """
+        Enroll page: Collect data from raspberry pi
+        """
         app.logger.debug("Showing enroll page")
         return render_template("enroll.html", api_name="enroll", url_path=app.config["URL_PATH"])
 
     @app.route("{}/list_only/".format(app.config["URL_PATH"]))
     def listonly_input():
+        """
+        List page: Only list files on the pi
+        """
         app.logger.debug("Showing listing page")
         return render_template("listonly_input.html", api_name="list_only", url_path=app.config["URL_PATH"])
 
     @app.route("{}/backup/<name>/".format(app.config["URL_PATH"]))
     def backup_rpi(name):
         """
-        Backup the raspberry pi
+        Backup the raspberry pi into a configurable directory.
+
+        Takes one argument, the raspberry pi hostname.
         """
         try:
             ip = app.config["COMPLETE_ARTIFICIAL_DNS"][name]
         except KeyError:
-            return "{} is not in the list of rpis!".format(name), 404
+            ip = name
         cmd = [
             app.config["RSYNC_PATH"],
             "-re",
@@ -177,6 +185,11 @@ def create_routes(app, db):
 
     @app.route("{}/cleanall/<name>/".format(app.config["URL_PATH"]))
     def cleanall(name):
+        """
+        Remove all data from the raspberry pi data directory
+
+        Takes one argument: raspberry pi hostname
+        """
         output, code = list_files(name)
         if code != 200:
             return output, code
@@ -190,7 +203,9 @@ def create_routes(app, db):
     @app.route("{}/enroll/<name>/".format(app.config["URL_PATH"]))
     def enroll_patient(name):
         """
-        Backup, clean, and set UUID for the pi
+        Backup, clean, and move backed up files to a final resting place
+
+        Takes one argument: raspberry pi hostname
         """
         # If we want another minor speed bump we can implement ssh multiplexing
         # with ControlMaster. But we need to implement 3 separate threads to
@@ -207,6 +222,8 @@ def create_routes(app, db):
     def enroll_finalization(name):
         """
         Take the files we wish to delete and then remove them
+
+        Takes one argument: raspberry pi hostname
         """
         # 0 corresponds to get the list of pseudo_ids
         # the other 0 is for the actual pseudo id
@@ -229,6 +246,12 @@ def create_routes(app, db):
 
     @app.route("{}/list_only/<name>/".format(app.config["URL_PATH"]))
     def listonly_show(name):
+        """
+        Only list files in the raspberry pi data dir. Then render html template showing
+        what the files are
+
+        Takes one argument: raspberry pi hostname
+        """
         output, code = list_files(name)
         if code != 200:
             return output, code
@@ -236,10 +259,16 @@ def create_routes(app, db):
 
     @app.route("{}/listfiles/<name>/".format(app.config["URL_PATH"]))
     def list_files(name):
+        """
+        Only list files in the raspberry pi data dir. Doesn't render html template,
+        just returns a JSON blob
+
+        Takes one argument: raspberry pi hostname
+        """
         try:
             ip = app.config["COMPLETE_ARTIFICIAL_DNS"][name]
         except KeyError:
-            return "{} is not in the list of rpis!".format(name), 404
+            ip = name
         cmd = regular_ssh_options + ["{}@{}".format(app.config["LISTER_USER"], ip)]
         app.logger.debug("Running ssh command {}".format(cmd))
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE)

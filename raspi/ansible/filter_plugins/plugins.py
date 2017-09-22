@@ -15,6 +15,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+def get_nginx_root_dir(distribution):
+    if distribution == "MacOSX":
+        return "/usr/local/etc/"
+    else:
+        return "/etc/"
+
+
 def get_clinicalsupervisor_dir(distribution):
     if distribution == "MacOSX":
         return "/Applications"
@@ -64,6 +72,7 @@ class FilterModule(object):
             "find_home_dir_root": find_home_dir_root,
             "get_all_hostnames": get_all_hostnames,
             "get_clinicalsupervisor_dir": get_clinicalsupervisor_dir,
+            "get_nginx_root_dir": get_nginx_root_dir,
             "get_rpi_ip_addr": get_rpi_ip_addr,
             "if_bash": if_bash,
             "set_backup_crontab_minute": set_backup_crontab_minute,

@@ -15,6 +15,7 @@ setup(
         "cryptography",
         "Flask-WTF",
         "mock",
+        "MySQL-python",
         "netifaces",
         "nose",
         "pyserial",

@@ -19,21 +19,59 @@
   command: launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
   tags:
     - clinicalsupervisor
+    - nginx
+  when: ansible_distribution == 'MacOSX'
 
 - name: Install brew nginx
   homebrew: name=nginx
   sudo: no
   tags:
     - clinicalsupervisor
+    - nginx
+  when: ansible_distribution == 'MacOSX'
 
 - name: Insert clinicalsupervisor nginx config
   template: src=clinicalsupervisor-nginx dest=/usr/local/etc/nginx/servers/clinicalsupervisor
   tags:
     - clinicalsupervisor
+    - nginx
   notify:
-    - restart clinicalsupervisor nginx
+    - restart clinicalsupervisor nginx OSX
+  when: ansible_distribution == 'MacOSX'
 
 - name: initialize launchd nginx
   copy: src=launchd-nginx.conf dest=/Library/LaunchDaemons/com.b2c.nginx.plist
   tags:
     - clinicalsupervisor
+    - nginx
+  when: ansible_distribution == 'MacOSX'
+
+- name: Remove default site
+  file: path=/etc/nginx/sites-enabled/default state=absent
+  tags:
+    - clinicalsupervisor
+    - nginx
+  notify:
+    - restart clinicalsupervisor nginx debian
+  when: ansible_os_family == 'Debian'
+
+- name: Insert clinicalsupervisor nginx config
+  template: src=clinicalsupervisor-nginx dest=/etc/nginx/sites-available/clinicalsupervisor
+  tags:
+    - clinicalsupervisor
+    - nginx
+  notify:
+    - restart clinicalsupervisor nginx debian
+  when: ansible_os_family == 'Debian'
+
+- name: Enable clinicalsupervisor nginx
+  file:
+    src=/etc/nginx/sites-available/clinicalsupervisor
+    dest=/etc/nginx/sites-enabled/clinicalsupervisor
+    state=link
+  tags:
+    - clinicalsupervisor
+    - nginx
+  notify:
+    - restart clinicalsupervisor nginx debian
+  when: ansible_os_family == 'Debian'

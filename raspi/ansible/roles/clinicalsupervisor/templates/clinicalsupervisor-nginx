@@ -8,10 +8,10 @@ server {
 
     location /clinicalsupervisor/ {
         uwsgi_pass clinicalsupervisor;
-        include /usr/local/etc/nginx/uwsgi_params;
+        include {{ ansible_distribution|get_nginx_root_dir }}/nginx/uwsgi_params;
         uwsgi_read_timeout {{ clinicalsupervisor_read_timeout }};
     }
     location ^~ /static/ {
-        root /Applications/clinicalsupervisor/venv/lib/python2.7/site-packages/clinicalsupervisor;
+        root {{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor/venv/lib/python2.7/site-packages/clinicalsupervisor;
     }
 }

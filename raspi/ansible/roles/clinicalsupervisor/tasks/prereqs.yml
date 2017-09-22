@@ -15,25 +15,48 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ---
 
-- name: Install brew python
-  homebrew: name=python
+- name: Install brew prereqs
+  homebrew: name={{ item }}
   sudo: no
+  with_items:
+    - mysql
+    - python
+  when: ansible_distribution == 'MacOSX'
   tags:
     - clinicalsupervisor
-  notify:
-    - start supervisor
-  when: {{ ansible_distribution == 'MacOSX' }}
 
 - name: ensure pip is locateable in /usr/local/sbin due to ansible bug
   file: src=/usr/local/bin dest=/usr/local/sbin state=link
+  when: ansible_distribution == 'MacOSX'
   tags:
     - clinicalsupervisor
-  when: {{ ansible_distribution == 'MacOSX' }}
 
-- name: Install root python prereqs
+- name: Install supervisor
+  pip: name=supervisor
+  when: ansible_distribution == 'MacOSX'
+  tags:
+    - clinicalsupervisor
+  notify:
+    - start supervisor OSX
+
+- name: Install apt prerequisites
+  apt:
+    name={{ item }}
+  with_items:
+    - nginx
+    - rsync
+    - python-pip
+    - mysql-server
+    - libmysqlclient-dev
+    - supervisor
+  when: ansible_os_family == 'Debian'
+  tags:
+    - clinicalsupervisor
+
+- name: Install common pip packages
   pip: name={{ item }}
   with_items:
+    - MySQL-python
     - virtualenv
-    - supervisor
   tags:
     - clinicalsupervisor
