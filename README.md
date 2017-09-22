@@ -75,7 +75,7 @@ will be different
 #### Final configuration
 ##### Network Operations and NTP Setup
 It is important to note that without a connection to an NTP server ventilator data collection
-will **NOT** commence. At UCD NetOps necessitated the RPi devices be located
+will **NOT** commence. At UCD, NetOps necessitated the RPi devices be located
 behind a secure firewall. If this is the case with you after consulting with NetOps then
 internet access to public NTP servers may not be available. If this is not the pertinent to your
 institution then this section is unnecessary.
@@ -203,13 +203,11 @@ for the `retriever_pub_key` variable. After pasting the public key it should loo
 After performing this action you will need to re-update your Raspberry Pi devices
 with this public key.
 
-### OSX
+### Database configuration
 
-    ansible-playbook -i inventory/<inv file name> clinicalsupervisor_install_osx.yml
+### Install via playbook
 
-### Debian
-
-    ansible-playbook -i inventory/<inv file name> clinicalsupervisor_install_debian.yml
+    ansible-playbook -i inventory/<inv file name> clinicalsupervisor_install.yml
 
 ## Usage
 
