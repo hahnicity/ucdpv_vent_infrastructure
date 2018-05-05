@@ -92,3 +92,6 @@ ENV/
 # Ansible stuff
 *.retry
 raspi/ansible/inventory/test*
+
+# Private files
+ucd-private*

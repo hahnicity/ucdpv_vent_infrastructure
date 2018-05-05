@@ -60,3 +60,16 @@
   tags:
     - configuration
     - rsync
+
+- name: copy socat package
+  copy: src=socat_1.7.2.4-2_armhf.deb dest=/var/tmp
+  tags:
+    - configuration
+    - socat
+
+- name: install socat
+  apt:
+    deb: /var/tmp/socat_1.7.2.4-2_armhf.deb
+  tags:
+    - configuration
+    - socat
