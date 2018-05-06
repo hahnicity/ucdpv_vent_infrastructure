@@ -1,6 +1,6 @@
 [config]
 baudrate=38400
-tty_file=TODO
+tty_file=/dev/ttyS11
 data_path=/home/pi/Data
 refresh_rate=7200
 vent_disconnect_tolerance={{ vent_disconnect_tolerance }}

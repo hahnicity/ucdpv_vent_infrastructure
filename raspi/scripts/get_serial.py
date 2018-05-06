@@ -36,7 +36,6 @@ def get_configuration(filename):
         config_dict["tty_file"] = parser.get("config", "tty_file")
         config_dict["data_path"] = parser.get("config", "data_path")
         config_dict["refresh_rate"] = parser.getint("config", "refresh_rate")
-        config_dict["vent_disconnect_tolerance"] = parser.getint("config", "vent_disconnect_tolerance")
     return config_dict
 
 
@@ -69,34 +68,36 @@ def retrieve_data(filename, config, serial_reader):
         elapsed = 0
         # This var tracks time in between breaths. Set this var to the current time.
         # Later if there have been no breaths then we will be able to catch it
-        read_time_start = time.time()
+        be_buf = ""
         while elapsed < config["refresh_rate"]:
-            elapsed = time.time() - begin
-            try:
-                n_waiting = serial_reader.inWaiting()
-            except serial.SerialException:
-                continue
-            if n_waiting > 0:
+            in_waiting = serial_reader.inWaiting()
+            if in_waiting > 0:
                 try:
-                    line = serial_reader.readline()
+                    buf = serial_reader.read(in_waiting)
                 except (serial.SerialException, OSError):
                     continue
-                f.write(line)
+                be_buf += buf
+                if be_buf.strip(" ")[-3:] == "BE\n":
+                    buf += datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S.%f") + '\n'
+                    be_buf = ""
+                    elapsed = time.time() - begin
+                elif be_buf.strip(" ")[-2:] == "BE":
+                    buf += '\n' + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S.%f")
+                    be_buf = ""
+                    elapsed = time.time() - begin
+                f.write(buf)
                 f.flush()
-                read_time_start = time.time()
-            # If the time in between breaths is greater than some threshold then stop the file
-            elif time.time() - read_time_start > config["vent_disconnect_tolerance"]:
-                return
 
 
 def get_serial(config_type):
-    if config_type not in ["testing", "prod"]:
-        raise Exception("Configuration type not valid. Choose either 'testing' or 'prod'")
-
-    config_path = {
-        "prod": "/etc/b2c/script_config",
-        "testing": "/etc/b2c/script_testing_config"
-    }[config_type]
+    try:
+        config_path = {
+            "prod": "/etc/b2c/script_config",
+            "testing": "/etc/b2c/script_testing_config",
+            "testing_bg": "/etc/b2c/script_testing_config"
+        }[config_type]
+    except KeyError:
+        raise Exception("Configuration type not valid. Choose one of {}".format(config_path.keys()))
     config = get_configuration(config_path)
     # open port, set baudrate
     ser = serial.Serial(port=config["tty_file"], baudrate=config["baudrate"])
@@ -104,14 +105,13 @@ def get_serial(config_type):
     while True:
         # Wait until we have something to collect. If not sleep momentarily
         if ser.inWaiting() == 0:
-            time.sleep(0.1)
-        else:
-            now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S.%f")
-            filename = str(socket.gethostname() +  "-" + now)
-            filename = os.path.join(os.path.abspath(config["data_path"]), filename)
-            filename = filename + ".csv"
-            retrieve_data(filename, config, ser)
-            flush_serial_buffers(ser)  # not too sure why we want to have this behavior but ok
-
+            time.sleep(0.2)
+            continue
+        now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S.%f")
+        filename = str(socket.gethostname() +  "-" + now)
+        filename = os.path.join(os.path.abspath(config["data_path"]), filename)
+        filename = filename + ".csv"
+        retrieve_data(filename, config, ser)
+        flush_serial_buffers(ser)  # not too sure why we want to have this behavior but ok
         if config_type == "testing":
             break

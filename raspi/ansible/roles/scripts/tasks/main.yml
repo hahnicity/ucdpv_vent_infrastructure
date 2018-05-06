@@ -72,6 +72,70 @@
     - scripts
     - gwf
 
+- name: copy six to machine
+  copy: src=six-1.11.0-py2.py3-none-any.whl dest=/home/pi
+  tags:
+    - scripts
+    - gwf
+    - testing
+    - get_serial
+
+- name: install six
+  pip: name=file:///home/pi/six-1.11.0-py2.py3-none-any.whl
+  tags:
+    - scripts
+    - gwf
+    - testing
+    - get_serial
+
+- name: copy pbr to machine
+  copy: src=pbr-4.0.2-py2.py3-none-any.whl dest=/home/pi
+  tags:
+    - scripts
+    - gwf
+    - testing
+    - get_serial
+
+- name: install pbr
+  pip: name=file:///home/pi/pbr-4.0.2-py2.py3-none-any.whl
+  tags:
+    - scripts
+    - gwf
+    - testing
+    - get_serial
+
+- name: copy pbr to machine
+  copy: src=funcsigs-1.0.2-py2.py3-none-any.whl dest=/home/pi
+  tags:
+    - scripts
+    - gwf
+    - testing
+    - get_serial
+
+- name: install pbr
+  pip: name=file:///home/pi/funcsigs-1.0.2-py2.py3-none-any.whl
+  tags:
+    - scripts
+    - gwf
+    - testing
+    - get_serial
+
+- name: copy mock to machine
+  copy: src=mock-2.0.0-py2.py3-none-any.whl dest=/home/pi
+  tags:
+    - scripts
+    - gwf
+    - testing
+    - get_serial
+
+- name: install mock
+  pip: name=file:///home/pi/mock-2.0.0-py2.py3-none-any.whl
+  tags:
+    - scripts
+    - gwf
+    - testing
+    - get_serial
+
 - name: ensure we rotate logs
   copy: src=logrotate dest=/etc/logrotate.d/gwf
   tags:
@@ -92,9 +156,39 @@
   tags:
     - scripts
     - get_serial
+    - testing
 
 - name: Setup get_serial
   copy: src=get_serial.py dest=/home/pi/ mode=0644 owner=pi group=pi
   tags:
     - scripts
+    - get_serial
+
+- name: copy socat package
+  copy: src=socat_1.7.2.4-2_armhf.deb dest=/var/tmp
+  tags:
+    - configuration
+    - testing
+    - get_serial
+
+- name: install socat
+  apt:
+    deb: /var/tmp/socat_1.7.2.4-2_armhf.deb
+  tags:
+    - configuration
+    - testing
+    - get_serial
+
+- name: copy tests
+  copy: src=test_data_integration.py dest=/home/pi
+  tags:
+    - configuration
+    - testing
+    - get_serial
+
+- name: run tests
+  shell: python /home/pi/test_data_integration.py
+  tags:
+    - configuration
+    - testing
     - get_serial
