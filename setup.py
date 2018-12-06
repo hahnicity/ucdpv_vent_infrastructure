@@ -13,13 +13,10 @@ setup(
     install_requires=[
         "ansible<2.0",
         "cryptography",
-        "Flask-WTF",
         "mock",
-        "MySQL-python",
         "netifaces",
         "nose",
         "pyserial",
-        "sqlalchemy",
     ],
     entry_points={
     }

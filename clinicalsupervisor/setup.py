@@ -28,7 +28,7 @@ setup(name='clinicalsupervisor',
       packages=find_packages(exclude=['*.tests']),
       install_requires=[
           'Flask>=0.10',
-          'MySQL-python',
+          'mysql-python',
           'pandas',
           'sqlalchemy',
           'uwsgi',
