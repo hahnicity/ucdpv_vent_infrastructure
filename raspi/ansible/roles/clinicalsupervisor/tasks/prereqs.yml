@@ -19,14 +19,14 @@
   homebrew: name={{ item }}
   sudo: no
   with_items:
-    - mysql
     - python
+    - mysql
   when: ansible_distribution == 'MacOSX'
   tags:
     - clinicalsupervisor
 
 - name: ensure pip is locateable in /usr/local/sbin due to ansible bug
-  file: src=/usr/local/bin dest=/usr/local/sbin state=link
+  file: src=/usr/local/bin/pip dest=/usr/local/sbin/pip state=link
   when: ansible_distribution == 'MacOSX'
   tags:
     - clinicalsupervisor
@@ -78,7 +78,7 @@
 - name: Install common pip packages
   pip: name={{ item }}
   with_items:
-    - MySQL-python
+    #- MySQL-python
     - virtualenv
   tags:
     - clinicalsupervisor

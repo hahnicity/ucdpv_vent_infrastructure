@@ -207,7 +207,7 @@ with this public key.
 
 ### Install via playbook
 
-    ansible-playbook -i inventory/<inv file name> clinicalsupervisor_install.yml
+    ansible-playbook -i inventory/<inv file name> clinicalsupervisor_install.yml --ask-sudo --sudo
 
 ## Usage
 
