@@ -32,8 +32,13 @@
   notify:
     - restart clinicalsupervisor
 
+- name: setup virtualenv
+  command: /usr/local/bin/virtualenv venv chdir={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor
+  tags:
+    - clinicalsupervisor
+
 - name: install clinicalsupervisor
-  shell: /usr/local/bin/pip install -U {{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor/clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz
+  shell: "{{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor/venv/bin/pip install -U {{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor/clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz"
   tags:
     - clinicalsupervisor
 
