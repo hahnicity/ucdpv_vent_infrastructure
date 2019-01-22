@@ -15,31 +15,82 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 - name: setup backup user
-  user: name=backup shell=/bin/false
+  user: name=backup shell=/bin/sh
+  tags:
+    - configuration
+    - users
 
 - name: setup backup ssh dir
   file: path=/home/backup/.ssh state=directory
+  tags:
+    - configuration
+    - users
 
 - name: setup cleaner user
-  user: name=cleaner shell=/bin/false
+  user: name=cleaner shell=/bin/sh
+  tags:
+    - configuration
+    - users
 
 - name: setup cleaner ssh dir
   file: path=/home/cleaner/.ssh state=directory
+  tags:
+    - configuration
+    - users
 
 - name: setup lister user
-  user: name=lister shell=/bin/false
+  user: name=lister shell=/bin/sh
+  tags:
+    - configuration
+    - users
 
 - name: setup lister ssh dir
   file: path=/home/lister/.ssh state=directory
+  tags:
+    - configuration
+    - users
+
+- name: setup ble user
+  user: name=ble shell=/bin/sh
+  tags:
+    - configuration
+    - users
+
+- name: setup ble ssh dir
+  file: path=/home/ble/.ssh state=directory
+  tags:
+    - configuration
+    - users
 
 - name: setup backup ssh auth keys
   template: src=backup_auth_keys.j2 dest=/home/backup/.ssh/authorized_keys
+  tags:
+    - configuration
+    - users
 
 - name: setup cleaner ssh auth keys
   template: src=cleaner_auth_keys.j2 dest=/home/cleaner/.ssh/authorized_keys
+  tags:
+    - configuration
+    - users
 
 - name: setup lister ssh auth keys
   template: src=lister_auth_keys.j2 dest=/home/lister/.ssh/authorized_keys
+  tags:
+    - configuration
+    - users
+
+- name: setup ble ssh auth keys
+  template: src=ble_auth_keys.j2 dest=/home/ble/.ssh/authorized_keys
+  tags:
+    - configuration
+    - users
+
+- name: setup ble ssh script
+  copy: src=ble_script.sh dest=/home/ble/
+  tags:
+    - configuration
+    - users
 
 - name: setup /etc/hostname
   hostname: name={{ inventory_hostname }}
