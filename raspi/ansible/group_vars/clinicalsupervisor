@@ -12,3 +12,6 @@ rsync_ssh_options: "-o StrictHostKeyChecking=no -o Compression=yes -o ConnectTim
 
 static_dns:
     hostname1: ipaddr1
+
+supervisor_user: retriever
+create_supervisor_user: true

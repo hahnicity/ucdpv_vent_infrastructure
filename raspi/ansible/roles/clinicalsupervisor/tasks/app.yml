@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ---
-- name: create retriever user
-  user: name=retriever shell=/bin/sh
+- name: create supervisor user
+  user: name={{ supervisor_user }} shell=/bin/sh
+  when: create_supervisor_user
 
 - name: Create clinicalsupervisor dir
   file: path={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor state=directory
@@ -37,24 +38,24 @@
     - clinicalsupervisor
 
 - name: install clinicalsupervisor
-  command: ./venv/bin/pip install --upgrade clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz chdir={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor
+  shell: "{{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor/venv/bin/pip install -U {{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor/clinicalsupervisor-{{ clinicalsupervisor_version }}.tar.gz"
   tags:
     - clinicalsupervisor
 
-- name: retriever should own clinicalsupervisor
-  file: path={{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor owner=retriever recurse=yes
+- name: supervisor user should own clinicalsupervisor
+  command: find {{ ansible_distribution|get_clinicalsupervisor_dir }}/clinicalsupervisor -exec chown {{ supervisor_user }} {} \;
   tags:
     - clinicalsupervisor
   notify:
     - restart clinicalsupervisor
 
 - name: Create logdir
-  file: path=/var/log/clinicalsupervisor state=directory owner=retriever
+  file: path=/var/log/clinicalsupervisor state=directory owner={{ supervisor_user }}
   tags:
     - clinicalsupervisor
 
 - name: Create config dir
-  file: path=/etc/clinicalsupervisor state=directory owner=retriever
+  file: path=/etc/clinicalsupervisor state=directory owner={{ supervisor_user }}
   tags:
     - clinicalsupervisor
 
@@ -80,10 +81,9 @@
 
 - name: Setup rpi directories
   file:
-    dest={{ ansible_distribution|find_home_dir_root }}/retriever/Data/{{ item }}
+    dest={{ ansible_distribution|find_home_dir_root }}/{{ supervisor_user }}/Data/{{ item }}
     state=directory
-    owner=retriever
-    group=retriever
+    owner={{ supervisor_user }}
   with_items: groups['rpis']
   tags:
     - backups
@@ -92,8 +92,8 @@
   cron:
     name="backup data files onto server for {{ item }}"
     minute={{ item|set_backup_crontab_minute }}
-    job="/opt/local/bin/rsync -re 'ssh {{ rsync_ssh_options }}' backup@{{ item|get_rpi_ip_addr(hostname_map=static_dns) }}:/home/pi/Data/* {{ ansible_distribution|find_home_dir_root }}/retriever/Data/{{ item }}"
-    user=retriever
+    job="/opt/local/bin/rsync -re 'ssh {{ rsync_ssh_options }}' backup@{{ item|get_rpi_ip_addr(hostname_map=static_dns) }}:/home/pi/Data/* {{ ansible_distribution|find_home_dir_root }}/{{ supervisor_user }}/Data/{{ item }}"
+    user={{ supervisor_user }}
   with_items: groups['rpis']
   sudo: yes
   tags:

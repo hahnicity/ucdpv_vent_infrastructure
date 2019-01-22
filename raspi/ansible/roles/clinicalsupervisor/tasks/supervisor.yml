@@ -44,6 +44,6 @@
     - restart clinicalsupervisor
 
 - name: register supervisor app
-  supervisorctl: name=clinicalsupervisor state=present config=/etc/supervisor/supervisord.conf
+  supervisorctl: name=clinicalsupervisor state=present config=/etc/supervisor/supervisord.conf supervisorctl_path=/usr/local/bin/supervisorctl
   tags:
     - clinicalsupervisor
