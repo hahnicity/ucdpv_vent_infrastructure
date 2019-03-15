@@ -1,5 +1,5 @@
 ---
-clinicalsupervisor_version: "1.0"
+clinicalsupervisor_version: "1.1"
 clinicalsupervisor_read_timeout: 3600
 database_software: mysql
 database_host: localhost
@@ -8,7 +8,7 @@ database_password: XXXchange_meXXX
 database_name: vwd
 database_root_password: XXXchange_meXXX
 
-rsync_ssh_options: "-o StrictHostKeyChecking=no -o Compression=yes -o ConnectTimeout=5"
+rsync_ssh_options: "-o StrictHostKeyChecking=no -o ConnectTimeout=5"
 
 static_dns:
     hostname1: ipaddr1

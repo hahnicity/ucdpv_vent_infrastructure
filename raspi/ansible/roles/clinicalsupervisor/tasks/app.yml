@@ -73,6 +73,11 @@
   notify:
     - restart clinicalsupervisor
 
+- name: Create junkyard dir
+  file: name={{ ansible_distribution|find_home_dir_root }}/{{ supervisor_user }}/junkyard state=directory
+  tags:
+    - clinicalsupervisor
+
 - name: Install latest rsync
   macports: name=rsync
   when: ansible_distribution == 'MacOSX'
