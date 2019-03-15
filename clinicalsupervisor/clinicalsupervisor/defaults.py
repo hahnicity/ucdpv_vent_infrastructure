@@ -35,6 +35,7 @@ CHUNKSIZE = 1000
 DATA_DIR = "/home/pi/Data"
 DB_URL = "mysql://root:root@localhost/vwd"
 FINAL_PATIENT_DIR = "/home/retriever"
+JUNKYARD_DIR = '/home/retriever/junkyard'
 LISTER_USER = "lister"
 LOCAL_BACKUP_DIR = join(FINAL_PATIENT_DIR, "Data")
 RAISE_ERROR_IF_NO_MYSQL_CONN = False

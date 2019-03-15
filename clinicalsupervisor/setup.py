@@ -23,7 +23,7 @@ from clinicalsupervisor import __version__
 
 
 setup(name='clinicalsupervisor',
-      version=__version__,
+      version="1.1",
       description='Clinical supervisor app for B2C',
       packages=find_packages(exclude=['*.tests']),
       install_requires=[

@@ -44,3 +44,7 @@ def main():
                 port=args.port)
     else:
         app.run(port=args.port)
+
+
+if __name__ == "__main__":
+    main()

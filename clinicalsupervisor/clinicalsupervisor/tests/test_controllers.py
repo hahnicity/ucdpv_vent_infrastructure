@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import json
 from os import remove
 from os.path import dirname, join
 
@@ -87,7 +88,7 @@ class TestControllers(TestCase):
             mock_name = "rpi-mock"
             mock_pseudo_id = "11111"
             files = ["foo", "bar"]
-            move_files(mock_app, MockDB(), mock_name, files, mock_pseudo_id)
+            move_files(mock_app, MockDB(), mock_name, files, mock_pseudo_id, False, True)
             eq_(mock_popen.call_args_list[-2][0][0],
                 ['mv', '/bar/baz/rpi-mock/foo', join(mock_app.config["FINAL_PATIENT_DIR"], '11111/11111-foo')])
             eq_(mock_popen.call_args_list[-1][0][0],
@@ -99,8 +100,10 @@ class TestControllers(TestCase):
             mock_popen().returncode = 0
             expected_clean_cmd = self.regular_ssh_options + ["lister@{}".format(TEST_RPI_IP)]
             response = self.client.get("/listfiles/{}/".format(TEST_RPI))
+            assert mock_popen.call_count == 3  # 2 for above and once more in the func
+            assert response.status_code == 200
             eq_(mock_popen.call_args_list[-1][0][0], expected_clean_cmd)
-            eq_(response.json, {"name": TEST_RPI, "files": ["foo", "bar"]})
+            eq_(json.loads(response.data), {"name": TEST_RPI, "files": ["foo", "bar"]})
 
     def test_clean_rpis(self):
         with patch("clinicalsupervisor.controllers.Popen") as mock_popen:
@@ -109,7 +112,92 @@ class TestControllers(TestCase):
             files = map(lambda x: str(x), range(1001))
             app = MockApp()
             clean_rpis(app, SSH_OPTIONS, TEST_RPI, files)
+            assert mock_popen.call_count == 4
             eq_(mock_popen.call_args_list[-2][0][0],
                 ["{}@{}".format(CLEAN_USER, TEST_RPI_IP), "rm"] + files[0:1000])
             eq_(mock_popen.call_args_list[-1][0][0],
                 ["{}@{}".format(CLEAN_USER, TEST_RPI_IP), "rm"] + files[1000:])
+
+    def test_junkyard_send_sunny_day(self):
+        with patch("clinicalsupervisor.controllers.Popen") as mock_popen:
+            mock_popen().communicate.return_value = "foo\nbar\nbaz", ""
+            mock_popen().returncode = 0
+            response = self.client.get("/junkyard_send/{}/".format(TEST_RPI))
+            html = response.data
+            assert response.status_code == 200
+            assert 'value="foo"' in html
+            assert 'value="bar"' in html
+            assert 'value="baz"' in html
+
+    def test_junkyard_send_backup_failure(self):
+        # just backup failure because that's the easiest one to do. Otherwise
+        # I'd have to do side effects
+        with patch("clinicalsupervisor.controllers.Popen") as mock_popen:
+            mock_popen().communicate.return_value = "", "Connection error: RPi is broke af"
+            mock_popen().returncode = 1
+            response = self.client.get("/junkyard_send/{}/".format(TEST_RPI))
+            assert mock_popen.call_count == 3
+            assert response.status_code == 500
+            assert response.data == 'Could not backup {}. Reason: Connection error: RPi is broke af'.format(TEST_RPI)
+
+    def test_junkyard_send_finalize_sunny_day(self):
+        with patch("clinicalsupervisor.controllers.Popen") as mock_popen:
+            mock_popen().communicate.return_value = "", ""
+            mock_popen().returncode = 0
+            response = self.client.post("/junkyard_send/{}/finalize".format(TEST_RPI), data={'file': ['foo', 'bar', 'baz']})
+            assert response.status_code == 200
+            assert mock_popen.call_count == 7
+            assert mock_popen.call_args_list[2][0][0] == ['mkdir', '-p', '/home/retriever/junkyard']
+            assert mock_popen.call_args_list[3][0][0] == ['mv', u'/home/retriever/Data/rpiX/foo', '/home/retriever/junkyard/foo']
+            assert mock_popen.call_args_list[4][0][0] == ['mv', u'/home/retriever/Data/rpiX/bar', '/home/retriever/junkyard/bar']
+            assert mock_popen.call_args_list[5][0][0] == ['mv', u'/home/retriever/Data/rpiX/baz', '/home/retriever/junkyard/baz']
+            assert mock_popen.call_args_list[6][0][0] == ['ssh', '-o', 'StrictHostKeyChecking=no', '-o', 'ConnectTimeout=5', 'cleaner@10.10.10.10', 'rm', u'/home/pi/Data/foo', u'/home/pi/Data/bar', u'/home/pi/Data/baz']
+            assert mock_popen.call_count == 7  # 2 for setup, 1 for create dir, 3 for moves, 1 for rm files
+
+    def test_junkyard_recover_sunny_day(self):
+        with patch("clinicalsupervisor.controllers.Popen") as mock_popen:
+            mock_popen().communicate.return_value = "rpi1-2017-01-08\nrpi2-2018-01-01\nrpi1-2017-01-09\n", ""
+            mock_popen().returncode = 0
+            response = self.client.get('/junkyard_recover')
+            html = response.data
+            assert response.status_code == 200
+            assert mock_popen.call_count == 3
+            assert 'value="rpi1-2017-01-08"' in html
+            assert 'value="rpi1-2017-01-09"' in html
+            assert 'value="rpi2-2018-01-01"' in html
+            assert '<input type="checkbox" class="checkbox" name="file" value>' not in html
+
+    def test_empty_junkyard_gives_no_check_boxes(self):
+        with patch("clinicalsupervisor.controllers.Popen") as mock_popen:
+            mock_popen().communicate.return_value = "", ""
+            mock_popen().returncode = 0
+            response = self.client.get('/junkyard_recover')
+            html = response.data
+            assert response.status_code == 200
+            assert mock_popen.call_count == 3
+            assert '<input type="checkbox" class="checkbox" name="file" value>' not in html
+
+    def test_junkyard_recover_finalize_sunny_day(self):
+        with patch("clinicalsupervisor.controllers.Popen") as mock_popen:
+            mock_popen().communicate.return_value = "", ""
+            mock_popen().returncode = 0
+            response = self.client.post("/junkyard_recover/finalize", data={'name': TEST_RPI, 'file': ['foo', 'bar', 'baz']})
+            assert response.status_code == 200
+            assert mock_popen.call_count == 6  # 2 for setup, 1 for mkdir, 3 for mv
+            assert mock_popen.call_args_list[2][0][0] == ['mkdir', '-p', u'/home/retriever/rpiX']
+            assert mock_popen.call_args_list[3][0][0] == ['mv', u'/home/retriever/junkyard/foo', u'/home/retriever/rpiX/rpiX-foo']
+            assert mock_popen.call_args_list[4][0][0] == ['mv', u'/home/retriever/junkyard/bar', u'/home/retriever/rpiX/rpiX-bar']
+            assert mock_popen.call_args_list[5][0][0] == ['mv', u'/home/retriever/junkyard/baz', u'/home/retriever/rpiX/rpiX-baz']
+
+    def test_enroll_finalize_sunny_day(self):
+        with patch("clinicalsupervisor.controllers.Popen") as mock_popen:
+            mock_popen().communicate.return_value = "", ""
+            mock_popen().returncode = 0
+            response = self.client.post("/enroll/{}/finalize".format(TEST_RPI), data={'name': TEST_RPI, 'file': ['foo', 'bar', 'baz']})
+            assert response.status_code == 200
+            assert mock_popen.call_count == 7  # 2 for setup, 1 for mkdir, 3 for mv, 1 for rm
+            assert mock_popen.call_args_list[2][0][0] == ['mkdir', '-p', u'/home/retriever/rpiX']
+            assert mock_popen.call_args_list[3][0][0] == ['mv', u'/home/retriever/Data/rpiX/foo', u'/home/retriever/rpiX/rpiX-foo']
+            assert mock_popen.call_args_list[4][0][0] == ['mv', u'/home/retriever/Data/rpiX/bar', u'/home/retriever/rpiX/rpiX-bar']
+            assert mock_popen.call_args_list[5][0][0] == ['mv', u'/home/retriever/Data/rpiX/baz', u'/home/retriever/rpiX/rpiX-baz']
+            assert mock_popen.call_args_list[6][0][0] == ['ssh', '-o', 'StrictHostKeyChecking=no', '-o', 'ConnectTimeout=5', 'cleaner@10.10.10.10', 'rm', u'/home/pi/Data/foo', u'/home/pi/Data/bar', u'/home/pi/Data/baz']

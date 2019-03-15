@@ -61,7 +61,7 @@ def clean_rpis(app, regular_ssh_options, name, files):
     return stdout, stderr, proc.returncode
 
 
-def make_initial_move_file_paths(app, name, basenames):
+def make_initial_move_file_paths(app, name, basenames, is_from_junkyard):
     """
     Return the string of paths where our backups final resting locations will
     be
@@ -70,11 +70,14 @@ def make_initial_move_file_paths(app, name, basenames):
     """
     files = []
     for file in basenames:
-        files.append(os.path.join(app.config["LOCAL_BACKUP_DIR"], name, file))
+        if is_from_junkyard:
+            files.append(os.path.join(app.config['JUNKYARD_DIR'], file))
+        else:
+            files.append(os.path.join(app.config['LOCAL_BACKUP_DIR'], name, file))
     return files
 
 
-def move_files(app, db, name, files, pseudo_id):
+def move_files(app, db, name, files, pseudo_id, is_from_junkyard, append_pseudo_id):
     """
     Once patient rpi files are backed up move them to their appropriate
     resting directory location. The will be a determinant of the rpi name
@@ -88,10 +91,11 @@ def move_files(app, db, name, files, pseudo_id):
     stdout, stderr = proc.communicate()
     if proc.returncode != 0:
         return stdout, stderr, proc.returncode
-    initial_paths = make_initial_move_file_paths(app, name, files)
+    initial_paths = make_initial_move_file_paths(app, name, files, is_from_junkyard)
     final_paths = []
     for path in initial_paths:
-        final_path = os.path.join(resting_dir, "{}-{}".format(pseudo_id, os.path.basename(path)))
+        basename = '{}-{}'.format(pseudo_id, os.path.basename(path)) if append_pseudo_id else os.path.basename(path)
+        final_path = os.path.join(resting_dir, basename)
         move_file_cmd = ["mv", path, final_path]
         final_paths.append(final_path)
         app.logger.debug("Move files to resting dir with cmd {}".format(move_file_cmd))
@@ -150,6 +154,14 @@ def create_routes(app, db):
         app.logger.debug("Showing enroll page")
         return render_template("enroll.html", api_name="enroll", url_path=app.config["URL_PATH"])
 
+    @app.route("{}/junkyard_send/".format(app.config["URL_PATH"]))
+    def junkyard_send():
+        """
+        Send data to the junkyard
+        """
+        app.logger.debug("Showing junkyard send page")
+        return render_template("junkyard_send.html", api_name="junkyard_send", url_path=app.config["URL_PATH"])
+
     @app.route("{}/list_only/".format(app.config["URL_PATH"]))
     def listonly_input():
         """
@@ -180,7 +192,7 @@ def create_routes(app, db):
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode != 0:
-            return "Could not backup {} {}".format(name, stderr), 500
+            return "Could not backup {}. Reason: {}".format(name, stderr), 500
         return "Successfully backed up {}".format(name), 200
 
     @app.route("{}/cleanall/<name>/".format(app.config["URL_PATH"]))
@@ -190,7 +202,7 @@ def create_routes(app, db):
 
         Takes one argument: raspberry pi hostname
         """
-        output, code = list_files(name)
+        output, code = list_rpi_files(name)
         if code != 200:
             return output, code
         fullpaths = make_clean_files_paths(json.loads(output)["files"])
@@ -213,7 +225,7 @@ def create_routes(app, db):
         output, rc = backup_rpi(name)
         if rc != 200:
             return output, rc
-        output, rc = list_files(name)
+        output, rc = list_rpi_files(name)
         if rc != 200:
             return output, rc
         return render_template("finalize.html", files=json.loads(output)["files"], url_path=app.config["URL_PATH"])
@@ -233,16 +245,7 @@ def create_routes(app, db):
             return "You must fill out the patient pseudo id!", 400
         # The 1 corresponds to file inputs
         basenames = request.form.listvalues()[1]
-        if not basenames:
-            return "You must select files to attach to a patient!", 400
-        stdout, stderr, rc = move_files(app, db, name, basenames, pseudo_id)
-        if rc != 0:
-            return "Unable to properly move backed up files to pseudo id dir {}".format(stderr), 500
-        files = make_clean_files_paths(basenames)
-        stdout, stderr, rc = clean_rpis(app, regular_ssh_options, name, files)
-        if rc != 0:
-            return "Unable to remove files from {} {}".format(name, stderr)
-        return render_template("index.html", url_path=app.config["URL_PATH"])
+        return _finalize_file_moves(name, basenames, pseudo_id, False, True)
 
     @app.route("{}/list_only/<name>/".format(app.config["URL_PATH"]))
     def listonly_show(name):
@@ -252,13 +255,13 @@ def create_routes(app, db):
 
         Takes one argument: raspberry pi hostname
         """
-        output, code = list_files(name)
+        output, code = list_rpi_files(name)
         if code != 200:
             return output, code
         return render_template("listonly_show.html", files=json.loads(output)["files"], url_path=app.config["URL_PATH"])
 
     @app.route("{}/listfiles/<name>/".format(app.config["URL_PATH"]))
-    def list_files(name):
+    def list_rpi_files(name):
         """
         Only list files in the raspberry pi data dir. Doesn't render html template,
         just returns a JSON blob
@@ -277,3 +280,58 @@ def create_routes(app, db):
             return "Could not list files on {} {}".format(name, stderr), 500
         response = {"name": name, "files": filter(lambda x: x, stdout.split("\n"))}
         return json.dumps(response), 200
+
+    @app.route('{}/junkyard_send/<name>/'.format(app.config['URL_PATH']))
+    def junkyard_send_patient(name):
+        output, rc = backup_rpi(name)
+        if rc != 200:
+            return output, rc
+        output, rc = list_rpi_files(name)
+        if rc != 200:
+            return output, rc
+        return render_template("junkyard_send_finalize.html", files=json.loads(output)["files"], url_path=app.config["URL_PATH"])
+
+    @app.route('{}/junkyard_send/<name>/finalize'.format(app.config['URL_PATH']), methods=['POST'])
+    def junkyard_send_finalization(name):
+        basenames = request.form.listvalues()[0]
+        return _finalize_file_moves(name, basenames, "junkyard", False, False)
+
+    @app.route("{}/junkyard_recover".format(app.config["URL_PATH"]))
+    def junkyard_recover():
+        """
+        Recover patient data from junkyard
+        """
+        app.logger.debug("Showing junkyard recover page")
+        cmd = ['ls', app.config['JUNKYARD_DIR']]
+        app.logger.debug("Running command {}".format(cmd))
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
+        if stderr or proc.returncode != 0:
+            return "Unable to list files in: {}. Reason: {}".format(app.config['JUNKYARD_DIR'], stderr), 500
+        sorted_files = sorted(stdout.strip('\n').split('\n'), key=lambda x: (x.split('-')[0], '-'.join(x.split('-')[1:])))
+        return render_template("junkyard_recover_finalize.html", files=sorted_files, url_path=app.config["URL_PATH"])
+
+    @app.route('{}/junkyard_recover/finalize'.format(app.config['URL_PATH']), methods=['POST'])
+    def junkyard_recover_finalize():
+        pseudo_id = request.form.listvalues()[0][0]
+        if not pseudo_id:
+            return "You must fill out the patient pseudo id!", 400
+        basenames = request.form.listvalues()[1]
+        if not basenames:
+            return "You must select files to attach to a patient!", 400
+        stdout, stderr, rc = move_files(app, db, None, basenames, pseudo_id, True, True)
+        if rc != 0:
+            return "Unable to properly move backed up files to junkyard. Reason: {}".format(stderr), 500
+        return render_template("index.html", url_path=app.config["URL_PATH"])
+
+    def _finalize_file_moves(name, file_basenames, pseudo_id, is_from_junkyard, append_pseudo_id):
+        if not file_basenames:
+            return "You must select files to attach to a patient!", 400
+        stdout, stderr, rc = move_files(app, db, name, file_basenames, pseudo_id, is_from_junkyard, append_pseudo_id)
+        if rc != 0:
+            return "Unable to properly move backed up files to junkyard. Reason: {}".format(stderr), 500
+        files = make_clean_files_paths(file_basenames)
+        stdout, stderr, rc = clean_rpis(app, regular_ssh_options, name, files)
+        if rc != 0:
+            return "Unable to remove files from {} {}".format(name, stderr)
+        return render_template("index.html", url_path=app.config["URL_PATH"])

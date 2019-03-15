@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="finalize" method="post">
+        <p><b>Choose the files that you want to move to the junkyard. You can select multiple files in a range using SHIFT-click</b></p>
+        <div data-toggle="checkboxes" data-range="true">
+            <table class="file_table">
+                <tbody>
+                    {% for file in files %}
+                        <tr><td><input type="checkbox" class="checkbox" name="file" value="{{ file }}"> {{ file }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+{% endblock %}
