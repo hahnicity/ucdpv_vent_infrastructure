@@ -42,7 +42,6 @@ RSYNC_PATH = "/opt/local/bin/rsync"
 SSH_OPTIONS = [
     "StrictHostKeyChecking=no",
     "ConnectTimeout=5",
-    "Compression=yes",
 ]
 URL_PATH = ""
 
