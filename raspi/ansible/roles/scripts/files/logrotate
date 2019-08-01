@@ -1,5 +1,4 @@
 /var/log/gwf.log {
-    100k
+    size 100k
     missingok
-    shred
 }
